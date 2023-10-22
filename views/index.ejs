@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>日誌數據</h1>
+    <form action="/logs" method="GET">
+      <label for="startDate">開始日期:</label>
+      <input type="date" name="startDate" id="startDate" required />
+      <label for="endDate">結束日期:</label>
+      <input type="date" name="endDate" id="endDate" required />
+      <button type="submit">搜索日誌</button>
+    </form>
+
+    <% if (error) { %>
+    <p><%= error %></p>
+    <% } else if (logs) { %>
+    <ul>
+      <% logs.forEach(function(log) { %>
+      <li><%= log._source.message %></li>
+      <% }); %>
+    </ul>
+    <% } %>
+  </body>
+</html>
