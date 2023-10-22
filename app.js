@@ -112,5 +112,3 @@ async function searchLogs() {
     console.error("Elasticsearch查詢錯誤:", error);
   }
 }
-
-searchLogs();
