@@ -9,51 +9,38 @@ const client = new Client({ node: "http://localhost:9200" });
 
 app.use(bodyParser.json());
 
-app.get("/search1", async (req, res) => {
-  try {
-    let aggs = {
-      result: {
-        date_histogram: {
-          field: "@timestamp",
-          fixed_interval: "1d",
-          format: "MM-dd",
-        },
-      },
-    };
-    const result = await client.search({
-      index: "winlogbeat-2023.10",
-      size: 0,
-      aggs: aggs,
-    });
-
-    res.json(result.aggregations.result.buckets);
-  } catch (error) {
-    console.error("Elasticsearch查詢錯誤:", error);
-    res.status(500).json({ error: "Elasticsearch查詢失敗" });
-  }
-});
-
 app.get("/logs", async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, host } = req.query;
 
-    if (!startDate || !endDate) {
+    if (!startDate || !endDate || !host) {
       return res.render("logs", {
-        error: "Both startDate and endDate are required.",
+        error: "StartDate, endDate, and host are all required.",
       });
     }
 
-    // 執行 Elasticsearch 查詢
+    // 执行 Elasticsearch 查询，包括主机过滤条件
     const result = await client.search({
       index: "winlogbeat-2023.10",
-      size: 50, //數量
+      size: 50, // 适当调整
       body: {
         query: {
-          range: {
-            "@timestamp": {
-              gte: startDate,
-              lte: endDate,
-            },
+          bool: {
+            must: [
+              {
+                range: {
+                  "@timestamp": {
+                    gte: startDate,
+                    lte: endDate,
+                  },
+                },
+              },
+              {
+                term: {
+                  "host.hostname": host, // 通过 host.keyword 字段过滤主机
+                },
+              },
+            ],
           },
         },
       },
@@ -75,40 +62,3 @@ const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-//測試
-async function searchLogs() {
-  try {
-    const result = await client.search({
-      index: "winlogbeat-2023.10",
-      size: 10,
-      body: {
-        query: {
-          bool: {
-            must: [
-              { term: { "host.hostname": "LAPTOP-GPPNAMEN" } },
-              {
-                range: {
-                  "@timestamp": {
-                    gte: "2023-10-22T00:00:00.000Z",
-                    lte: "2023-10-22T23:59:59.999Z",
-                  },
-                },
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    const logs = result.hits.hits;
-
-    logs.forEach((log) => {
-      const hostname = log._source.host.hostname;
-      const timestamp = log._source["@timestamp"];
-      console.log(`Hostname: ${hostname}, Timestamp: ${timestamp}`);
-    });
-  } catch (error) {
-    console.error("Elasticsearch查詢錯誤:", error);
-  }
-}
