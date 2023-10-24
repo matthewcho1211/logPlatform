@@ -43,10 +43,30 @@
       <a href="#" class="nav-link">查找異樣log</a>
     </div>
     <div class="container">
-      <h1>歡迎來到首頁</h1>
-      <a href="/logs" class="button">查找日志</a>
-      <a href="#" class="button">查找儀表板</a>
-      <a href="#" class="button">查找異樣log</a>
+      <h1>日誌數據</h1>
+      <form action="/searchLogs" method="GET">
+        <label for="startDate">開始日期:</label>
+        <input type="date" name="startDate" id="startDate" required />
+        <label for="endDate">結束日期:</label>
+        <input type="date" name="endDate" id="endDate" required />
+
+        <label for="host">選擇主機:</label>
+        <select name="host" id="host" required>
+          <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
+        </select>
+
+        <button type="submit">搜索日誌</button>
+      </form>
+
+      <% if (error) { %>
+      <p><%= error %></p>
+      <% } else if (logs) { %>
+      <ul>
+        <% logs.forEach(function(log) { %>
+        <li><%= log._source.message %></li>
+        <% }); %>
+      </ul>
+      <% } %>
     </div>
   </body>
 </html>

@@ -16,7 +16,7 @@ const client = new Client({
 
 app.use(bodyParser.json());
 
-app.get("/logs", async (req, res) => {
+app.get("/searchLogs", async (req, res) => {
   try {
     const { startDate, endDate, host } = req.query;
 
@@ -54,15 +54,18 @@ app.get("/logs", async (req, res) => {
 
     const logs = result.hits.hits;
 
-    res.render("index", { logs: logs, error: null });
+    res.render("search", { logs: logs, error: null });
   } catch (error) {
     console.error("Elasticsearch查詢錯誤:", error);
-    res.render("index", { logs: [], error: "No matching logs found." });
+    res.render("search", { logs: [], error: "No matching logs found." });
   }
 });
 
+app.get("/logs", (req, res) => {
+  res.render("search", { logs: [], error: null });
+});
 app.get("/", (req, res) => {
-  res.render("index", { logs: [], error: null });
+  res.render("index");
 });
 const port = 3000;
 app.listen(port, () => {
