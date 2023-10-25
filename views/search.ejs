@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -35,13 +42,33 @@
     </style>
   </head>
   <body>
-    <div class="navigation">
-      <h1>日誌收容平台</h1>
-      <a href="/" class="nav-link">首頁</a>
-      <a href="/logs" class="nav-link">查找日志</a>
-      <a href="#" class="nav-link">查找儀表板</a>
-      <a href="#" class="nav-link">查找異樣log</a>
-    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="/">日誌收容平台</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#">查找日志</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">查找儀表板</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">查找異樣log</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
     <div class="container">
       <h1>日誌數據</h1>
       <form action="/searchLogs" method="GET">
@@ -57,16 +84,31 @@
 
         <button type="submit">搜索日誌</button>
       </form>
-
-      <% if (error) { %>
-      <p><%= error %></p>
-      <% } else if (logs) { %>
-      <ul>
-        <% logs.forEach(function(log) { %>
-        <li><%= log._source.message %></li>
-        <% }); %>
-      </ul>
-      <% } %>
     </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">@timestamp</th>
+          <th scope="col">event</th>
+          <th scope="col">host</th>
+          <th scope="col">user</th>
+          <th scope="col">source</th>
+          <th scope="col">log_level</th>
+          <th scope="col">log_type</th>
+          <th scope="col">event_id</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <% if (error) { %>
+    <p class="text-danger"><%= error %></p>
+    <% } else if (logs) { %>
+    <ul class="list-group">
+      <% logs.forEach(function(log) { %>
+      <li class="list-group-item"><%= log._source.message %></li>
+      <% }); %>
+    </ul>
+    <% } %>
   </body>
 </html>
