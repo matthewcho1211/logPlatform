@@ -28,7 +28,7 @@ app.get("/searchLogs", async (req, res) => {
 
     const result = await client.search({
       index: "winlogbeat-2023.10",
-      size: 50,
+      size: 1000,
       body: {
         query: {
           bool: {
@@ -53,6 +53,7 @@ app.get("/searchLogs", async (req, res) => {
     });
 
     const logs = result.hits.hits;
+    console.log(logs[0]._source["@timestamp"]);
 
     res.render("search", { logs: logs, error: null });
   } catch (error) {

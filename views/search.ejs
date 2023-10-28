@@ -89,26 +89,30 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <th scope="col">id</th>
           <th scope="col">@timestamp</th>
-          <th scope="col">event</th>
-          <th scope="col">host</th>
-          <th scope="col">user</th>
-          <th scope="col">source</th>
+          <th scope="col">hostname</th>
           <th scope="col">log_level</th>
-          <th scope="col">log_type</th>
           <th scope="col">event_id</th>
         </tr>
       </thead>
-      <tbody></tbody>
+
+      <% if (error) { %>
+      <p class="text-danger"><%= error %></p>
+      <% } else if (logs) { %>
+      <tbody>
+        <% logs.forEach(function(log) { %>
+        <tr>
+          <td><%= log._id %></td>
+          <td><%= log._source["@timestamp"] %></td>
+          <td><%= log._source.host.hostname %></td>
+          <td><%= log._source.log.level %></td>
+          <td><%= log._source['winlog']['event_id'] %></td>
+        </tr>
+
+        <% }); %>
+      </tbody>
+      <% } %>
     </table>
-    <% if (error) { %>
-    <p class="text-danger"><%= error %></p>
-    <% } else if (logs) { %>
-    <ul class="list-group">
-      <% logs.forEach(function(log) { %>
-      <li class="list-group-item"><%= log._source.message %></li>
-      <% }); %>
-    </ul>
-    <% } %>
   </body>
 </html>
