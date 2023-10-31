@@ -1,0 +1,33 @@
+body {
+  font-family: Arial, sans-serif;
+}
+.container {
+  text-align: center;
+  padding: 20px;
+}
+.button {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+}
+.navigation {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+}
+.nav-link {
+  color: #fff; /* 设置导航链接文本颜色为白色 */
+  text-decoration: none;
+  margin: 0 10px;
+}
+.word-wrap-break {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  /* 也可以添加 max-width，以控制文本宽度 */
+  max-width: 400px; /* 自定义宽度值 */
+}

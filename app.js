@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const { Client } = require("@elastic/elasticsearch");
 
+app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
@@ -62,12 +63,61 @@ app.get("/searchLogs", async (req, res) => {
   }
 });
 
-// app.get("/logs", (req, res) => {
-//   res.render("search", { logs: [], error: null });
-// });
+app.get("/logDetail/:logId", async (req, res) => {
+  try {
+    const logId = req.params.logId;
+
+    const result = await client.search({
+      index: "winlogbeat-2023.10",
+      body: {
+        query: {
+          term: {
+            _id: logId,
+          },
+        },
+      },
+    });
+
+    const log = result.hits.hits;
+    console.log(log);
+    res.render("logInfo", { log: log });
+  } catch (error) {
+    console.error("Elasticsearch 查询错误:", error);
+    res.status(500).json({ error: "Elasticsearch 查询错误" });
+  }
+});
+
+app.get("/getLogsData", async (req, res) => {
+  try {
+    const aggs = {
+      result: {
+        date_histogram: {
+          field: "@timestamp",
+          fixed_interval: "1d",
+          format: "MM-dd",
+        },
+      },
+    };
+
+    const result = await client.search({
+      index: "winlogbeat-2023.10",
+      size: 0,
+      aggs: aggs,
+    });
+
+    const data = result.aggregations.result.buckets;
+
+    res.json(data);
+  } catch (error) {
+    console.error("Elasticsearch查询错误:", error);
+    res.status(500).json({ error: "查询出错" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
+
 const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -42,52 +41,33 @@
         </ul>
       </div>
     </nav>
-    <div class="container">
-      <h1>日誌數據</h1>
-      <form action="/searchLogs" method="GET">
-        <label for="startDate">開始日期:</label>
-        <input type="date" name="startDate" id="startDate" required />
-        <label for="endDate">結束日期:</label>
-        <input type="date" name="endDate" id="endDate" required />
-
-        <label for="host">選擇主機:</label>
-        <select name="host" id="host" required>
-          <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
-        </select>
-
-        <button type="submit">搜索日誌</button>
-      </form>
+    <div class="container mt-4">
+      <h1 class="mb-4">Log Detail</h1>
+      <ul class="list-group">
+        <li class="list-group-item">
+          <strong>Log ID:</strong> <%= log[0]._id %>
+        </li>
+        <li class="list-group-item">
+          <strong>Timestamp:</strong> <%= log[0]._source["@timestamp"] %>
+        </li>
+        <li class="list-group-item">
+          <strong>Hostname:</strong> <%= log[0]._source.host.hostname %>
+        </li>
+        <li class="list-group-item">
+          <strong>Log Level:</strong> <%= log[0]._source.log.level %>
+        </li>
+        <li class="list-group-item">
+          <strong>Event Provider:</strong> <%= log[0]._source.event.provider %>
+        </li>
+        <li class="list-group-item">
+          <strong>Event Action:</strong> <%= log[0]._source.event.action %>
+        </li>
+        <li class="list-group-item">
+          <strong>Log Message:</strong>
+          <span class="word-wrap-break"><%= log[0]._source.message %></span>
+        </li>
+        <!-- Add more details as needed -->
+      </ul>
     </div>
-
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">id</th>
-          <th scope="col">index</th>
-          <th scope="col">@timestamp</th>
-          <th scope="col">hostname</th>
-          <th scope="col">log_level</th>
-          <th scope="col">event_id</th>
-        </tr>
-      </thead>
-
-      <% if (error) { %>
-      <p class="text-danger"><%= error %></p>
-      <% } else if (logs) { %>
-      <tbody>
-        <% logs.forEach(function(log) { %>
-        <tr>
-          <td><a href="/logDetail/<%= log._id %>"><%= log._id %></a></td>
-          <td><%= log._index %></td>
-          <td><%= log._source["@timestamp"] %></td>
-          <td><%= log._source.host.hostname %></td>
-          <td><%= log._source.log.level %></td>
-          <td><%= log._source['winlog']['event_id'] %></td>
-        </tr>
-
-        <% }); %>
-      </tbody>
-      <% } %>
-    </table>
   </body>
 </html>
