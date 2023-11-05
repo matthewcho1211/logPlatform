@@ -114,6 +114,36 @@ app.get("/getLogsData", async (req, res) => {
   }
 });
 
+app.get("/dashboard", async (req, res) => {
+  try {
+    const result = await client.search({
+      index: "winlogbeat-2023.10",
+      aggs: {
+        result: {
+          date_histogram: {
+            field: "@timestamp",
+            fixed_interval: "1d",
+            format: "MM-dd",
+          },
+        },
+      },
+    });
+    const perdayaggregations = result.aggregations.result.buckets;
+    let label = [];
+    let chartdata = [];
+    perdayaggregations.forEach((item) => {
+      label.push(item.key_as_string);
+      chartdata.push(item.doc_count);
+    });
+    res.render("dashboard", {
+      label: label,
+      chartdata: chartdata,
+    });
+  } catch (error) {
+    console.error("找不到資料", error);
+  }
+});
+
 app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });

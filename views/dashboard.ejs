@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-
     <link rel="stylesheet" href="/style.css" />
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -18,6 +18,8 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -39,7 +41,7 @@
             <a class="nav-link" href="/">查找日志</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/dashboard">查找儀表板</a>
+            <a class="nav-link" href="#">查找儀表板</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">查找異樣log</a>
@@ -47,53 +49,55 @@
         </ul>
       </div>
     </nav>
-    <div class="container">
-      <h1>日誌數據</h1>
-      <form action="/searchLogs" method="GET">
-        <label for="startDate">開始日期:</label>
-        <input type="date" name="startDate" id="startDate" required />
-        <label for="endDate">結束日期:</label>
-        <input type="date" name="endDate" id="endDate" required />
-
-        <label for="host">選擇主機:</label>
-        <select name="host" id="host" required>
-          <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
-          <option value="Poker">Poker</option>
-        </select>
-
-        <button type="submit">搜索日誌</button>
-      </form>
+    <div>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6"><canvas id="myChart"></canvas></div>
+          <div class="col-md-6">放第二張圖</div>
+        </div>
+      </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const labels = <%- JSON.stringify(label) %>;
+      const data = <%- JSON.stringify(chartdata) %>;
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">id</th>
-          <th scope="col">index</th>
-          <th scope="col">@timestamp</th>
-          <th scope="col">hostname</th>
-          <th scope="col">log_level</th>
-          <th scope="col">event_id</th>
-        </tr>
-      </thead>
+      const ctx = document.getElementById('myChart').getContext('2d');
 
-      <% if (error) { %>
-      <p class="text-danger"><%= error %></p>
-      <% } else if (logs) { %>
-      <tbody>
-        <% logs.forEach(function(log) { %>
-        <tr>
-          <td><a href="/logDetail/<%= log._id %>"><%= log._id %></a></td>
-          <td><%= log._index %></td>
-          <td><%= log._source["@timestamp"] %></td>
-          <td><%= log._source.host.hostname %></td>
-          <td><%= log._source.log.level %></td>
-          <td><%= log._source['winlog']['event_id'] %></td>
-        </tr>
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label:'doc_count',
+            data: data
+          }]
+        },
 
-        <% }); %>
-      </tbody>
-      <% } %>
-    </table>
+      });
+      /*const ctx = document.getElementById('myChart').getContext('2d');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ],
+          datasets: [{
+            label: 'doc_count',
+            data: [],
+
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                parser: 'MM-dd'
+              }
+            }
+          }
+        }
+      });*/
+    </script>
   </body>
 </html>
