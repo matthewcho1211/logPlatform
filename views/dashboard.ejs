@@ -53,7 +53,7 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6"><canvas id="myChart"></canvas></div>
-          <div class="col-md-6">放第二張圖</div>
+          <div class="col-md-6"><canvas id="myChart2"></canvas></div>
         </div>
       </div>
     </div>
@@ -61,8 +61,11 @@
     <script>
       const labels = <%- JSON.stringify(label) %>;
       const data = <%- JSON.stringify(chartdata) %>;
+      const labelsforweek = <%- JSON.stringify(weeklylabel) %>;
+      const chartdataforweek = <%- JSON.stringify(weeklychartdata) %>;
 
       const ctx = document.getElementById('myChart').getContext('2d');
+      const ctx2 = document.getElementById('myChart2').getContext('2d')
 
       new Chart(ctx, {
         type: 'bar',
@@ -75,29 +78,18 @@
         },
 
       });
-      /*const ctx = document.getElementById('myChart').getContext('2d');
 
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ],
-          datasets: [{
-            label: 'doc_count',
-            data: [],
-
+      new Chart(ctx2,{
+        type:'bar',
+        data:{
+          labels:labelsforweek,
+          datasets:[{
+            label:'doc_count',
+            data:chartdataforweek
           }]
-        },
-        options: {
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                parser: 'MM-dd'
-              }
-            }
-          }
         }
-      });*/
+      })
+
     </script>
   </body>
 </html>

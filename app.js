@@ -117,7 +117,7 @@ app.get("/getLogsData", async (req, res) => {
 app.get("/dashboard", async (req, res) => {
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: "winlogbeat-2023.11",
       aggs: {
         result: {
           date_histogram: {
@@ -135,13 +135,54 @@ app.get("/dashboard", async (req, res) => {
       label.push(item.key_as_string);
       chartdata.push(item.doc_count);
     });
-    res.render("dashboard", {
-      label: label,
-      chartdata: chartdata,
-    });
+    res.locals.label = label
+    res.locals.chartdata = chartdata
   } catch (error) {
     console.error("找不到資料", error);
   }
+
+  try{
+    const now = new Date();
+    const start = now.getTime() - 1000*60*60*24*7;
+    const result = await client.search({
+      index:"winlogbeat-2023.11",
+      body: {
+        query: {
+          range: {
+            '@timestamp': {
+              'gte': start,
+              'lte': now  
+            }
+          }
+        },
+      aggs:{
+        weeklyresult:{
+          date_histogram:{
+            field:"@timestamp",
+            fixed_interval:"1d",
+            format:"MM-dd"
+          }
+        }
+      }
+    }
+  })
+  const weekly = result.aggregations.weeklyresult.buckets
+  let weeklylabel = []
+  let weeklychartdata = []
+  weekly.forEach((item) =>{
+    weeklylabel.push(item.key_as_string)
+    weeklychartdata.push(item.doc_count)
+  })
+  console.log(weeklylabel)
+  console.log(weeklychartdata)
+  res.locals.weeklylabel = weeklylabel
+  res.locals.weeklychartdata = weeklychartdata
+
+  }catch(error){
+    console.error("找不到資料", error);
+  }
+
+  res.render('dashboard')
 });
 
 app.get("/", (req, res) => {
