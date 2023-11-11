@@ -6,14 +6,14 @@ const { Client } = require("@elastic/elasticsearch");
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
-// const client = new Client({
-//   node: "http://192.168.56.107:9200", // Elasticsearch虛擬機的IP和端口
-//   auth: {
-//     username: "elastic", // Elasticsearch用戶名
-//     password: "Ylpfc6TX4sySwhNs2p3f", // Elasticsearch密碼
-//   },
-// });
+// const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
+const client = new Client({
+  node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
+  auth: {
+    username: "elastic", // Elasticsearch用戶名
+    password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
+  },
+});
 
 app.use(bodyParser.json());
 
@@ -190,7 +190,7 @@ app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
-const port = 3000;
+const port = 3500;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
