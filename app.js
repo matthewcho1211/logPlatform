@@ -6,29 +6,29 @@ const { Client } = require("@elastic/elasticsearch");
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
-const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
-// const client = new Client({
-//   node: "http://192.168.56.107:9200", // Elasticsearch虛擬機的IP和端口
-//   auth: {
-//     username: "elastic", // Elasticsearch用戶名
-//     password: "Ylpfc6TX4sySwhNs2p3f", // Elasticsearch密碼
-//   },
-// });
+// const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
+const client = new Client({
+  node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
+  auth: {
+    username: "elastic", // Elasticsearch用戶名
+    password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
+  },
+});
 
 app.use(bodyParser.json());
 
 app.get("/searchLogs", async (req, res) => {
   try {
-    const { startDate, endDate, host } = req.query;
+    const { startDate, endDate, host, index } = req.query; // 添加 index 到查詢參數
 
-    if (!startDate || !endDate || !host) {
+    if (!startDate || !endDate || !host || !index) { // 確保index也被提供
       return res.render("logs", {
-        error: "StartDate, endDate, and host are all required.",
+        error: "StartDate, endDate, host, and index are all required.",
       });
     }
 
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: index, // 使用查詢參數中的 index
       size: 1000,
       body: {
         query: {
@@ -49,12 +49,14 @@ app.get("/searchLogs", async (req, res) => {
               },
             ],
           },
+          // match_all :{}
         },
       },
     });
 
+
     const logs = result.hits.hits;
-    console.log(logs[0]._source["@timestamp"]);
+    console.log(logs[0]);
 
     res.render("search", { logs: logs, error: null });
   } catch (error) {
@@ -189,7 +191,7 @@ app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
-const port = 3000;
+const port = 3500;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
