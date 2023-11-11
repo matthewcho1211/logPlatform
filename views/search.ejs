@@ -57,10 +57,14 @@
 
         <label for="host">選擇主機:</label>
         <select name="host" id="host" required>
+          <option value="LAPTOP-2H1OVO0T">LAPTOP-2H1OVO0T</option>
           <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
+          <option value="frankwin7-PC">frankwin7-PC</option>
           <option value="Poker">Poker</option>
         </select>
 
+        <label for="index">選擇Index:</label>
+        <select name="index" id="index" required></select>
         <button type="submit">搜索日誌</button>
       </form>
     </div>
@@ -95,5 +99,48 @@
       </tbody>
       <% } %>
     </table>
+    <script>
+      function generateIndexOption(year, month) {
+        return [
+          `winlogbeat-${year}.${month}`,
+          // `win7winlogbeat-${year}.${month}`
+        ];
+      }
+
+      function updateIndexOptions() {
+        let date = new Date();
+        let currentYear = date.getFullYear();
+        let currentMonth = ("0" + (date.getMonth() + 1)).slice(-2); // 月份是從0開始的，所以+1
+
+        let select = document.getElementById("index");
+
+        // 假設我們要追溯的最早年份
+        for (let year = 2023; year <= currentYear; year++) {
+          for (let month = 10; month <= 12; month++) {
+            // 對於當前年份，只添加到當前月份
+            if (year === currentYear && month > date.getMonth() + 1) {
+              break;
+            }
+
+            let formattedMonth = ("0" + month).slice(-2);
+            let indexOptions = generateIndexOption(year, formattedMonth);
+
+            indexOptions.forEach(function (index) {
+              let optionExists = Array.from(select.options).some(
+                (option) => option.value === index
+              );
+              if (!optionExists) {
+                let option = document.createElement("option");
+                option.value = option.text = index;
+                select.appendChild(option);
+              }
+            });
+          }
+        }
+      }
+
+      // 在頁面加載時更新index選項
+      window.onload = updateIndexOptions;
+    </script>
   </body>
 </html>

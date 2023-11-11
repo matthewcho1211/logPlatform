@@ -19,16 +19,17 @@ app.use(bodyParser.json());
 
 app.get("/searchLogs", async (req, res) => {
   try {
-    const { startDate, endDate, host } = req.query;
+    const { startDate, endDate, host, index } = req.query; // 添加 index 到查詢參數
 
-    if (!startDate || !endDate || !host) {
+    if (!startDate || !endDate || !host || !index) {
+      // 確保index也被提供
       return res.render("logs", {
-        error: "StartDate, endDate, and host are all required.",
+        error: "StartDate, endDate, host, and index are all required.",
       });
     }
 
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: index, // 使用查詢參數中的 index
       size: 1000,
       body: {
         query: {
@@ -49,12 +50,13 @@ app.get("/searchLogs", async (req, res) => {
               },
             ],
           },
+          // match_all :{}
         },
       },
     });
 
     const logs = result.hits.hits;
-    console.log(logs[0]._source["@timestamp"]);
+    console.log(logs[0]);
 
     res.render("search", { logs: logs, error: null });
   } catch (error) {
@@ -68,7 +70,7 @@ app.get("/logDetail/:logId", async (req, res) => {
     const logId = req.params.logId;
 
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: "winlogbeat-2023.11",
       body: {
         query: {
           term: {
@@ -100,7 +102,7 @@ app.get("/getLogsData", async (req, res) => {
     };
 
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: "winlogbeat-2023.11",
       size: 0,
       aggs: aggs,
     });
@@ -117,7 +119,7 @@ app.get("/getLogsData", async (req, res) => {
 app.get("/dashboard", async (req, res) => {
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index: "winlogbeat-2023.10",
       aggs: {
         result: {
           date_histogram: {
@@ -135,54 +137,53 @@ app.get("/dashboard", async (req, res) => {
       label.push(item.key_as_string);
       chartdata.push(item.doc_count);
     });
-    res.locals.label = label
-    res.locals.chartdata = chartdata
+    res.locals.label = label;
+    res.locals.chartdata = chartdata;
   } catch (error) {
     console.error("找不到資料", error);
   }
 
-  try{
+  try {
     const now = new Date();
-    const start = now.getTime() - 1000*60*60*24*7;
+    const start = now.getTime() - 1000 * 60 * 60 * 24 * 7;
     const result = await client.search({
-      index:"winlogbeat-2023.11",
+      index: "winlogbeat-2023.11",
       body: {
         query: {
           range: {
-            '@timestamp': {
-              'gte': start,
-              'lte': now  
-            }
-          }
+            "@timestamp": {
+              gte: start,
+              lte: now,
+            },
+          },
         },
-      aggs:{
-        weeklyresult:{
-          date_histogram:{
-            field:"@timestamp",
-            fixed_interval:"1d",
-            format:"MM-dd"
-          }
-        }
-      }
-    }
-  })
-  const weekly = result.aggregations.weeklyresult.buckets
-  let weeklylabel = []
-  let weeklychartdata = []
-  weekly.forEach((item) =>{
-    weeklylabel.push(item.key_as_string)
-    weeklychartdata.push(item.doc_count)
-  })
-  console.log(weeklylabel)
-  console.log(weeklychartdata)
-  res.locals.weeklylabel = weeklylabel
-  res.locals.weeklychartdata = weeklychartdata
-
-  }catch(error){
+        aggs: {
+          weeklyresult: {
+            date_histogram: {
+              field: "@timestamp",
+              fixed_interval: "1d",
+              format: "MM-dd",
+            },
+          },
+        },
+      },
+    });
+    const weekly = result.aggregations.weeklyresult.buckets;
+    let weeklylabel = [];
+    let weeklychartdata = [];
+    weekly.forEach((item) => {
+      weeklylabel.push(item.key_as_string);
+      weeklychartdata.push(item.doc_count);
+    });
+    console.log(weeklylabel);
+    console.log(weeklychartdata);
+    res.locals.weeklylabel = weeklylabel;
+    res.locals.weeklychartdata = weeklychartdata;
+  } catch (error) {
     console.error("找不到資料", error);
   }
 
-  res.render('dashboard')
+  res.render("dashboard");
 });
 
 app.get("/", (req, res) => {
