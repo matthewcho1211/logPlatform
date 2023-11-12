@@ -19,40 +19,49 @@ app.use(bodyParser.json());
 
 app.get("/searchLogs", async (req, res) => {
   try {
-    const { startDate, endDate, host, index } = req.query; // 添加 index 到查詢參數
+    const { startDate, endDate, host, index, eventId } = req.query;
 
     if (!startDate || !endDate || !host || !index) {
-      // 確保index也被提供
       return res.render("logs", {
         error: "StartDate, endDate, host, and index are all required.",
       });
     }
 
-    const result = await client.search({
-      index: index, // 使用查詢參數中的 index
-      size: 1000,
-      body: {
-        query: {
-          bool: {
-            must: [
-              {
-                range: {
-                  "@timestamp": {
-                    gte: startDate,
-                    lte: endDate,
-                  },
+    const queryBody = {
+      query: {
+        bool: {
+          must: [
+            {
+              range: {
+                "@timestamp": {
+                  gte: startDate,
+                  lte: endDate,
                 },
               },
-              {
-                term: {
-                  "host.hostname": host,
-                },
+            },
+            {
+              term: {
+                "host.hostname": host,
               },
-            ],
-          },
-          // match_all :{}
+            },
+          ],
         },
       },
+    };
+
+    if (eventId) {
+      // 如果存在 eventId，则添加到查询条件中
+      queryBody.query.bool.must.push({
+        term: {
+          "winlog.event_id": eventId,
+        },
+      });
+    }
+
+    const result = await client.search({
+      index: index,
+      size: 1000,
+      body: queryBody,
     });
 
     const logs = result.hits.hits;
@@ -89,32 +98,32 @@ app.get("/logDetail/:logId", async (req, res) => {
   }
 });
 
-app.get("/getLogsData", async (req, res) => {
-  try {
-    const aggs = {
-      result: {
-        date_histogram: {
-          field: "@timestamp",
-          fixed_interval: "1d",
-          format: "MM-dd",
-        },
-      },
-    };
+// app.get("/getLogsData", async (req, res) => {
+//   try {
+//     const aggs = {
+//       result: {
+//         date_histogram: {
+//           field: "@timestamp",
+//           fixed_interval: "1d",
+//           format: "MM-dd",
+//         },
+//       },
+//     };
 
-    const result = await client.search({
-      index: "winlogbeat-2023.11",
-      size: 0,
-      aggs: aggs,
-    });
+//     const result = await client.search({
+//       index: "winlogbeat-2023.11",
+//       size: 0,
+//       aggs: aggs,
+//     });
 
-    const data = result.aggregations.result.buckets;
+//     const data = result.aggregations.result.buckets;
 
-    res.json(data);
-  } catch (error) {
-    console.error("Elasticsearch查询错误:", error);
-    res.status(500).json({ error: "查询出错" });
-  }
-});
+//     res.json(data);
+//   } catch (error) {
+//     console.error("Elasticsearch查询错误:", error);
+//     res.status(500).json({ error: "查询出错" });
+//   }
+// });
 
 app.get("/dashboard", async (req, res) => {
   try {
@@ -181,6 +190,37 @@ app.get("/dashboard", async (req, res) => {
     res.locals.weeklychartdata = weeklychartdata;
   } catch (error) {
     console.error("找不到資料", error);
+  }
+
+  try {
+    const result = await client.search({
+      index: "winlogbeat-2023.11", // 你的索引名称
+      size: 0,
+      body: {
+        aggs: {
+          top_event_ids: {
+            terms: {
+              field: "winlog.event_id",
+              size: 5, // 获取前五多的 event id
+              order: { _count: "desc" }, // 按数量降序排序
+            },
+          },
+        },
+      },
+    });
+
+    // 从 Elasticsearch 结果中提取聚合信息
+    const topEventIds = result.aggregations.top_event_ids.buckets.map(
+      (bucket) => ({
+        eventId: bucket.key,
+        count: bucket.doc_count,
+      })
+    );
+
+    res.locals.topEventIds = topEventIds;
+  } catch (error) {
+    console.error("Elasticsearch 查询错误:", error);
+    res.status(500).json({ error: "Elasticsearch 查询错误" });
   }
 
   res.render("dashboard");

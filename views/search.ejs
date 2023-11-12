@@ -62,6 +62,8 @@
           <option value="frankwin7-PC">frankwin7-PC</option>
           <option value="Poker">Poker</option>
         </select>
+        <label for="eventId">輸入eventID:</label>
+        <input type="text" name="eventId" id="eventId" />
 
         <label for="index">選擇Index:</label>
         <select name="index" id="index" required></select>
@@ -92,7 +94,7 @@
           <td><%= log._source["@timestamp"] %></td>
           <td><%= log._source.host.hostname %></td>
           <td><%= log._source.log.level %></td>
-          <td><%= log._source['winlog']['event_id'] %></td>
+          <td><%= log._source.winlog.event_id %></td>
         </tr>
 
         <% }); %>
