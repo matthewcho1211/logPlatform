@@ -62,6 +62,9 @@
           <strong>Log Level:</strong> <%= log[0]._source.log.level %>
         </li>
         <li class="list-group-item">
+          <strong>Event Id:</strong> <%= log[0]._source.winlog.event_id %>
+        </li>
+        <li class="list-group-item">
           <strong>Event Provider:</strong> <%= log[0]._source.event.provider %>
         </li>
         <li class="list-group-item">

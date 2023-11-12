@@ -50,7 +50,7 @@ app.get("/searchLogs", async (req, res) => {
     };
 
     if (eventId) {
-      // 如果存在 eventId，则添加到查询条件中
+      // 如果存在 eventId，就加入查詢條件中
       queryBody.query.bool.must.push({
         term: {
           "winlog.event_id": eventId,
@@ -126,6 +126,7 @@ app.get("/logDetail/:logId", async (req, res) => {
 // });
 
 app.get("/dashboard", async (req, res) => {
+  //獲取全部log
   try {
     const result = await client.search({
       index: "winlogbeat-2023.10",
@@ -152,6 +153,7 @@ app.get("/dashboard", async (req, res) => {
     console.error("找不到資料", error);
   }
 
+  //獲取當周log
   try {
     const now = new Date();
     const start = now.getTime() - 1000 * 60 * 60 * 24 * 7;
@@ -191,25 +193,24 @@ app.get("/dashboard", async (req, res) => {
   } catch (error) {
     console.error("找不到資料", error);
   }
-
+  //獲取前五多的event_id
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.11", // 你的索引名称
+      index: "winlogbeat-2023.11",
       size: 0,
       body: {
         aggs: {
           top_event_ids: {
             terms: {
               field: "winlog.event_id",
-              size: 5, // 获取前五多的 event id
-              order: { _count: "desc" }, // 按数量降序排序
+              size: 5,
+              order: { _count: "desc" },
             },
           },
         },
       },
     });
 
-    // 从 Elasticsearch 结果中提取聚合信息
     const topEventIds = result.aggregations.top_event_ids.buckets.map(
       (bucket) => ({
         eventId: bucket.key,
