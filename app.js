@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+const moment = require('moment'); // require
 const { Client } = require("@elastic/elasticsearch");
 
 app.use(express.static("public"));
@@ -126,6 +127,7 @@ app.get("/logDetail/:logId", async (req, res) => {
 // });
 
 app.get("/dashboard", async (req, res) => {
+
   //獲取全部log
   try {
     const result = await client.search({
@@ -154,44 +156,112 @@ app.get("/dashboard", async (req, res) => {
   }
 
   //獲取當周log
-  try {
-    const now = new Date();
-    const start = now.getTime() - 1000 * 60 * 60 * 24 * 7;
+  try{
+    const now = moment.utc()
+    const start = moment.utc().subtract(6,'days')
+    const startofday = new Date(start).setHours(0,0,0,0)
+    //console.log(now)
+    //console.log(start)
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index:"winlogbeat-2023.11",
       body: {
         query: {
           range: {
-            "@timestamp": {
-              gte: start,
-              lte: now,
-            },
-          },
+            '@timestamp': {
+              'gte': startofday,
+              'lte': now  
+            }
+          }
         },
-        aggs: {
-          weeklyresult: {
-            date_histogram: {
-              field: "@timestamp",
-              fixed_interval: "1d",
-              format: "MM-dd",
-            },
-          },
-        },
-      },
-    });
-    const weekly = result.aggregations.weeklyresult.buckets;
-    let weeklylabel = [];
-    let weeklychartdata = [];
-    weekly.forEach((item) => {
-      weeklylabel.push(item.key_as_string);
-      weeklychartdata.push(item.doc_count);
-    });
-    console.log(weeklylabel);
-    console.log(weeklychartdata);
-    res.locals.weeklylabel = weeklylabel;
-    res.locals.weeklychartdata = weeklychartdata;
-  } catch (error) {
+      aggs:{
+        weeklyresult:{
+          date_histogram:{
+            field:"@timestamp",
+            min_doc_count:0,
+            fixed_interval:"1d",
+            format:"MM-dd",
+            time_zone:'+08:00',
+          }
+        }
+      }
+    }
+  })
+  const weekly = result.aggregations.weeklyresult.buckets
+  let weeklylabel = []
+  let weeklychartdata = []
+  weekly.forEach((item) =>{
+    weeklylabel.push(item.key_as_string)
+    weeklychartdata.push(item.doc_count)
+  })
+  res.locals.weeklylabel = weeklylabel
+  res.locals.weeklychartdata = weeklychartdata
+  
+
+  }catch(error){
     console.error("找不到資料", error);
+  }
+  //今日每小時資料
+  try{
+    const moment = require('moment');
+    const daystart = moment().startOf('day')
+    const dayend = moment()
+    console.log(daystart)
+    console.log(dayend)
+
+    const result = await client.search({
+      index:"winlogbeat-2023.11",
+      body:{
+        query: {
+          range: {
+            '@timestamp': {
+              'gte': daystart,
+              'lte': dayend
+            }
+          }
+        },
+        aggs:{
+          hourlyresult:{
+            date_histogram:{
+              field:'@timestamp',
+              fixed_interval:'1h',
+              format:'HH',
+              time_zone:'+08:00',
+              min_doc_count:0
+            }
+          }
+        }
+      }
+    })
+    const hourly = result.aggregations.hourlyresult.buckets
+    let hourlylabel = []
+    let hourlychartdata = []
+    const startOfDay = moment().startOf('day');
+    const hoursInDay = Array.from({ length: 24 }, (_, i) => startOfDay.clone().add(i, 'hours'));
+    
+    hoursInDay.forEach(hour => {
+      const formattedHour = hour.format('HH');
+      const foundHour = hourly.find(item => item.key_as_string === formattedHour);
+    
+      if (foundHour) {
+        hourlylabel.push(foundHour.key_as_string);
+        hourlychartdata.push(foundHour.doc_count);
+      } else {
+        hourlylabel.push(formattedHour);
+        hourlychartdata.push(0);
+      }
+    });
+    console.log(hourlylabel);
+    console.log(hourlychartdata);
+    /*hourly.forEach((item) => {
+      hourlylabel.push(item.key_as_string);
+      hourlychartdata.push(item.doc_count);
+    });
+    console.log(hourlylabel)
+    */
+    res.locals.hourlylabel = hourlylabel
+    res.locals.hourlychartdata = hourlychartdata
+  }catch(error){
+
   }
   //獲取前五多的event_id
   try {
@@ -231,7 +301,7 @@ app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
-const port = 3000;
+const port = 5487;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
