@@ -56,6 +56,12 @@
           <div class="col-md-6"><canvas id="myChart2"></canvas></div>
         </div>
         <div class="row">
+          <div class="col-md-12">
+            <canvas id="myChart3"></canvas> 
+          </div>
+        </div>
+        <div class="row">
+          
           <div class="col-md-6">
             <h1>Top Event IDs</h1>
             <ul class="list-group">
@@ -75,9 +81,12 @@
       const data = <%- JSON.stringify(chartdata) %>;
       const labelsforweek = <%- JSON.stringify(weeklylabel) %>;
       const chartdataforweek = <%- JSON.stringify(weeklychartdata) %>;
+      const labelsforhour = <%- JSON.stringify(hourlylabel) %>;
+      const chartdataforhour = <%- JSON.stringify(hourlychartdata) %>;
 
       const ctx = document.getElementById('myChart').getContext('2d');
-      const ctx2 = document.getElementById('myChart2').getContext('2d')
+      const ctx2 = document.getElementById('myChart2').getContext('2d');
+      const ctx3 = document.getElementById('myChart3').getContext('2d');
 
       new Chart(ctx, {
         type: 'bar',
@@ -98,6 +107,16 @@
           datasets:[{
             label:'doc_count',
             data:chartdataforweek
+          }]
+        }
+      })
+      new Chart(ctx3,{
+        type:'bar',
+        data:{
+          labels:labelsforhour,
+          datasets:[{
+            label:'doc_count',
+            data:chartdataforhour
           }]
         }
       })
