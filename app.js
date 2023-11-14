@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const moment = require("moment"); // require
+const request = require("request");
 const { Client } = require("@elastic/elasticsearch");
 
 app.use(express.static("public"));
@@ -316,17 +317,43 @@ app.get("/getDestinationIp", async (req, res) => {
 
     const data = result.aggregations.result.buckets;
     console.log(data);
-    res.json(data);
+
+    const countryData = await Promise.all(
+      data.map(async (bucket) => {
+        const ip = bucket.key;
+        const country = await getCountryFromIp(ip);
+        const count = bucket.doc_count;
+        return { ip, country, count };
+      })
+    );
+    console.log(countryData);
+    res.json(countryData);
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
   }
 });
 
+async function getCountryFromIp(ip) {
+  return new Promise((resolve, reject) => {
+    // 使用 IP 地址转换 API，这里使用了一个示例的 API（ipinfo.io）
+    const apiUrl = `http://ipinfo.io/${ip}/json`;
+
+    request(apiUrl, (error, response, body) => {
+      if (!error && response.statusCode === 200) {
+        const data = JSON.parse(body);
+        resolve(data.country);
+      } else {
+        reject(error || "Failed to retrieve country data");
+      }
+    });
+  });
+}
+
 app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
-const port = 5487;
+const port = 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
