@@ -227,6 +227,32 @@ app.get("/dashboard", async (req, res) => {
   res.render("dashboard");
 });
 
+//查各種destinationIp有幾個(poker看這邊)
+app.get("/getDestinationIp", async (req, res) => {
+  try {
+    const aggs = {
+      result: {
+        terms: {
+          field: "winlog.event_data.DestinationIp",
+          order: [{ _count: "desc" }],
+        },
+      },
+    };
+
+    const result = await client.search({
+      index: "winlogbeat-2023.11",
+      size: 0,
+      aggs: aggs,
+    });
+
+    const data = result.aggregations.result.buckets;
+    console.log(data);
+    res.json(data);
+  } catch (error) {
+    console.error("Elasticsearch 查詢錯誤:", error);
+  }
+});
+
 app.get("/", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
