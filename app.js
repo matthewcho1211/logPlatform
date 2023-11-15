@@ -333,6 +333,27 @@ app.get("/getDestinationIp", async (req, res) => {
   }
 });
 
+
+// const { WebServiceClient } = require('@maxmind/geoip2-node');
+
+// // 替換以下兩個值為您的 MaxMind 用戶ID和授權金鑰
+// const userId = '937805';
+// const licenseKey = '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';
+
+// const client = new WebServiceClient(userId, licenseKey, { host: 'geolite.info' });
+
+// app.post('/getip', (req, res) => {
+//   const ip = req.body.ip(換);
+//   client.city(ip).then(response => {
+//       res.send(`<p>IP 地址 ${ip} 的國家代碼是: ${response.country.isoCode} 城市名：${response.city.names.en} </p>`);
+//   }).catch(error => {
+//       console.error(error); // 在後端控制台打印完整錯誤
+//       res.send(`<p>錯誤: ${error.message}</p>`); // 向前端發送錯誤信息
+//   });
+// });
+
+
+
 async function getCountryFromIp(ip) {
   return new Promise((resolve, reject) => {
     // 使用 IP 地址转换 API，这里使用了一个示例的 API（ipinfo.io）
