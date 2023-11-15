@@ -1,9 +1,16 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-const moment = require("moment"); // require
+const moment = require("moment");
 const request = require("request");
 const { Client } = require("@elastic/elasticsearch");
+const { WebServiceClient } = require("@maxmind/geoip2-node");
+
+const userId = "937805";
+const licenseKey = "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";
+const serviceClient = new WebServiceClient(userId, licenseKey, {
+  host: "geolite.info",
+});
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -67,7 +74,7 @@ app.get("/searchLogs", async (req, res) => {
     });
 
     const logs = result.hits.hits;
-    console.log(logs[0]);
+    //console.log(logs[0]);
 
     res.render("search", { logs: logs, error: null });
   } catch (error) {
@@ -92,7 +99,7 @@ app.get("/logDetail/:logId", async (req, res) => {
     });
 
     const log = result.hits.hits;
-    console.log(log);
+    //console.log(log);
     res.render("logInfo", { log: log });
   } catch (error) {
     console.error("Elasticsearch 查询错误:", error);
@@ -127,7 +134,7 @@ app.get("/logDetail/:logId", async (req, res) => {
 //   }
 // });
 
-app.get("/dashboard", async (req, res) => {
+app.get("/", async (req, res) => {
   //獲取全部log
   try {
     const result = await client.search({
@@ -203,8 +210,8 @@ app.get("/dashboard", async (req, res) => {
     const moment = require("moment");
     const daystart = moment().startOf("day");
     const dayend = moment();
-    console.log(daystart);
-    console.log(dayend);
+    //console.log(daystart);
+    //console.log(dayend);
 
     const result = await client.search({
       index: "winlogbeat-2023.11",
@@ -252,8 +259,8 @@ app.get("/dashboard", async (req, res) => {
         hourlychartdata.push(0);
       }
     });
-    console.log(hourlylabel);
-    console.log(hourlychartdata);
+    //console.log(hourlylabel);
+    //console.log(hourlychartdata);
     /*hourly.forEach((item) => {
       hourlylabel.push(item.key_as_string);
       hourlychartdata.push(item.doc_count);
@@ -318,14 +325,38 @@ app.get("/getDestinationIp", async (req, res) => {
     const data = result.aggregations.result.buckets;
     console.log(data);
 
+    // const countryData = await Promise.all(
+    //   data.map(async (bucket) => {
+    //     const ip = bucket.key;
+    //     const ipInfo = await getCountryCityFromIp(ip);
+    //     const count = bucket.doc_count;
+    //     return { ip, ...ipInfo, count };
+    //   })
+    // );
+
     const countryData = await Promise.all(
       data.map(async (bucket) => {
         const ip = bucket.key;
-        const country = await getCountryFromIp(ip);
         const count = bucket.doc_count;
-        return { ip, country, count };
+
+        try {
+          // 獲取城市信息
+          const ip_data = await serviceClient.city(ip);
+          //console.log(ip_data);
+
+          // 提取國家和城市信息
+          const country = ip_data.country.isoCode;
+          console.log(country);
+
+          return { ip, country, count };
+        } catch (error) {
+          console.error("讀取 GeoIP 數據時發生錯誤:", error);
+          // 適當地處理錯誤，例如返回默認值或將數據標記為無效。
+          return { ip, country: "Unknown", count };
+        }
       })
     );
+
     console.log(countryData);
     res.json(countryData);
   } catch (error) {
@@ -333,44 +364,25 @@ app.get("/getDestinationIp", async (req, res) => {
   }
 });
 
-
-// const { WebServiceClient } = require('@maxmind/geoip2-node');
-
-// // 替換以下兩個值為您的 MaxMind 用戶ID和授權金鑰
-// const userId = '937805';
-// const licenseKey = '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';
-
-// const client = new WebServiceClient(userId, licenseKey, { host: 'geolite.info' });
-
-// app.post('/getip', (req, res) => {
-//   const ip = req.body.ip(換);
-//   client.city(ip).then(response => {
-//       res.send(`<p>IP 地址 ${ip} 的國家代碼是: ${response.country.isoCode} 城市名：${response.city.names.en} </p>`);
-//   }).catch(error => {
-//       console.error(error); // 在後端控制台打印完整錯誤
-//       res.send(`<p>錯誤: ${error.message}</p>`); // 向前端發送錯誤信息
-//   });
-// });
-
-
-
-async function getCountryFromIp(ip) {
+async function getCountryCityFromIp(ip) {
   return new Promise((resolve, reject) => {
-    // 使用 IP 地址转换 API，这里使用了一个示例的 API（ipinfo.io）
+    // 使用 IP 地址轉換 API，這裡使用了一個示例的 API（ipinfo.io）
     const apiUrl = `http://ipinfo.io/${ip}/json`;
 
     request(apiUrl, (error, response, body) => {
       if (!error && response.statusCode === 200) {
         const data = JSON.parse(body);
-        resolve(data.country);
+        const country = data.country;
+        const city = data.city;
+        resolve({ country, city });
       } else {
-        reject(error || "Failed to retrieve country data");
+        reject(error || "Failed to retrieve country and city data");
       }
     });
   });
 }
 
-app.get("/", (req, res) => {
+app.get("/search", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
