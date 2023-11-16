@@ -383,10 +383,13 @@ app.get("/getDestinationIp", async (req, res) => {
         try {
           // 獲取城市信息
           const ip_data = await serviceClient.city(ip);
-          //console.log(ip_data);
+          console.log(ip_data);
 
           // 提取國家和城市信息
-          const country = ip_data.country.isoCode;
+          let country = ip_data.country || ip_data.registeredCountry;
+          if (country && country.isoCode) {
+            country = country.isoCode;
+          }
           console.log(country);
 
           return { ip, country, count };
