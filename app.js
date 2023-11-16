@@ -345,7 +345,7 @@ app.get("/", async (req, res) => {
   res.render("dashboard");
 });
 
-//查各種destinationIp有幾個(poker看這邊)
+//查各種destinationIp有幾個(poker看這邊，你可以把這裡整個try catch丟到上面的dashboard，然後再res.locals你想要傳給前端的資料屬性，你可以參考我前面的top event ids)
 app.get("/getDestinationIp", async (req, res) => {
   try {
     const aggs = {
