@@ -1,8 +1,10 @@
 const express = require("express");
+const session = require("express-session");
 const bodyParser = require("body-parser");
 const app = express();
 const moment = require("moment");
 const request = require("request");
+require("dotenv").config();
 const { Client } = require("@elastic/elasticsearch");
 const { WebServiceClient } = require("@maxmind/geoip2-node");
 
@@ -15,6 +17,14 @@ const serviceClient = new WebServiceClient(userId, licenseKey, {
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+app.use(
+  session({
+    secret: "mySecretKey",
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
 const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
 // const client = new Client({
 //   node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
@@ -25,13 +35,44 @@ const client = new Client({ node: "http://localhost:9200" }); //連自己的測�
 // });
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
+const authenticate = (req, res, next) => {
+  if (req.session.isAuthenticated) {
+    next();
+  } else {
+    res.render("login");
+  }
+};
+
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  const presetUsername = process.env.USER;
+  const presetPassword = process.env.PASSWORD;
+
+  if (username === presetUsername && password === presetPassword) {
+    req.session.isAuthenticated = true;
+    res.redirect("/");
+  } else {
+    res.send("用戶名或密碼錯誤。");
+  }
+});
+
+app.get("/logout", (req, res) => {
+  req.session.destroy(function (err) {
+    res.redirect("/login");
+  });
+});
 app.get("/searchLogs", async (req, res) => {
   try {
     const { startDate, endDate, host, index, eventId } = req.query;
 
     if (!startDate || !endDate || !host || !index) {
-      return res.render("logs", {
+      return res.render("search", {
         error: "StartDate, endDate, host, and index are all required.",
       });
     }
