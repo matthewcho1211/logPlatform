@@ -329,6 +329,7 @@ app.get("/", async (req, res) => {
       },
     });
 
+
     const topEventIds = result.aggregations.top_event_ids.buckets.map(
       (bucket) => ({
         eventId: bucket.key,
@@ -341,6 +342,44 @@ app.get("/", async (req, res) => {
     console.error("Elasticsearch 查询错误:", error);
     res.status(500).json({ error: "Elasticsearch 查询错误" });
   }
+
+  try{
+
+    const result = await client.search({
+      index: "winlogbeat-2023.11",
+      size: 0,
+      body: {
+        aggs: {
+          event_ids: {
+            terms: {
+              field: "event.code",
+              size: 1000,
+              
+            },
+          },
+        },
+      },
+    });
+
+    const eventid_bucket = result.aggregations.event_ids.buckets
+    console.log(eventid_bucket)
+    const eventid_label = []
+    const eventid_count = []
+
+    eventid_bucket.forEach((item) =>{
+      eventid_label.push(item.key)
+      eventid_count.push(item.doc_count)
+    }
+    )
+    res.locals.eventid_label = eventid_label;
+    res.locals.eventid_count = eventid_count;
+    console.log(eventid_label)
+    console.log(eventid_count)
+
+  }catch(error){
+    console.log("找不到event id")
+  }
+
 
   res.render("dashboard");
 });

@@ -76,6 +76,11 @@
             </ul>
           </div>
         </div>
+        <div class="row">
+          <div>
+            <canvas id="myChart4"></canvas>
+          </div>
+        </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -86,10 +91,13 @@
       const chartdataforweek = <%- JSON.stringify(weeklychartdata) %>;
       const labelsforhour = <%- JSON.stringify(hourlylabel) %>;
       const chartdataforhour = <%- JSON.stringify(hourlychartdata) %>;
+      const eventidlabel = <%- JSON.stringify(eventid_label) %>;
+      const eventidcount = <%- JSON.stringify(eventid_count) %>;
 
       const ctx = document.getElementById('myChart').getContext('2d');
       const ctx2 = document.getElementById('myChart2').getContext('2d');
       const ctx3 = document.getElementById('myChart3').getContext('2d');
+      const ctx4 = document.getElementById('myChart4').getContext('2d');
 
       new Chart(ctx, {
         type: 'bar',
@@ -121,6 +129,49 @@
             label:'doc_count',
             data:chartdataforhour
           }]
+        }
+      })
+
+      new Chart(ctx4,{
+        type: 'pie', 
+        data: {
+          labels:eventidlabel,
+          datasets:[{
+            labels:'event id',
+            data:eventidcount,
+            backgroundColor:[
+            'blue',
+              'orange',
+              'green',
+              'red',
+              'purple',
+              'brown',
+              'pink',
+              'gray',
+              'olive',
+              'cyan',
+              'aliceblue',
+              'antiquewhite',
+              'aqua',
+              'aquamarine',
+              'azure',
+              'beige',
+              'bisque',
+              'black',
+              'blanchedalmond',
+              'blue',
+              'blueviolet',
+              'brown',
+              'burlywood',
+              'cadetblue'],
+              borderColor: '#fff',
+              borderWidth: 1
+          }]
+          
+        },
+        options: {
+          responsive: true, // 自動調整大小
+          maintainAspectRatio: false, // 保持比例
         }
       })
     </script>
