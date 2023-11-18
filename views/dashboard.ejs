@@ -56,12 +56,13 @@
       <div class="container">
         <h1>Dashboard</h1>
         <div class="row">
-          <div class="col-md-6"><canvas id="myChart"></canvas></div>
-          <div class="col-md-6"><canvas id="myChart2"></canvas></div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <canvas id="myChart3"></canvas>
+          <div class="col-md-6">
+            <h2>Hourly Chart</h2>
+            <canvas id="hourlyChart"></canvas>
+          </div>
+          <div class="col-md-6">
+            <h2>Weekly Chart</h2>
+            <canvas id="weeklyChart"></canvas>
           </div>
         </div>
         <div class="row">
@@ -75,10 +76,17 @@
               <% }); %>
             </ul>
           </div>
+          <div class="col-md-6">
+            <h2>Event Id Chart</h2>
+            <div class="d-flex justify-content-center">
+              <canvas id="event_idChart"></canvas>
+            </div>
+          </div>
         </div>
-        <div class="row">
-          <div>
-            <canvas id="myChart4"></canvas>
+        <div class="w-75 container">
+          <h2>Monthly Chart</h2>
+          <div class="d-flex justify-content-center">
+            <canvas id="monthlyChart"></canvas>
           </div>
         </div>
       </div>
@@ -94,10 +102,10 @@
       const eventidlabel = <%- JSON.stringify(eventid_label) %>;
       const eventidcount = <%- JSON.stringify(eventid_count) %>;
 
-      const ctx = document.getElementById('myChart').getContext('2d');
-      const ctx2 = document.getElementById('myChart2').getContext('2d');
-      const ctx3 = document.getElementById('myChart3').getContext('2d');
-      const ctx4 = document.getElementById('myChart4').getContext('2d');
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+      const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+      const ctx3 = document.getElementById('hourlyChart').getContext('2d');
+      const ctx4 = document.getElementById('event_idChart').getContext('2d');
 
       new Chart(ctx, {
         type: 'bar',
@@ -133,7 +141,7 @@
       })
 
       new Chart(ctx4,{
-        type: 'pie', 
+        type: 'pie',
         data: {
           labels:eventidlabel,
           datasets:[{
@@ -167,10 +175,10 @@
               borderColor: '#fff',
               borderWidth: 1
           }]
-          
+
         },
         options: {
-          responsive: true, // 自動調整大小
+          responsive: false, // 自動調整大小
           maintainAspectRatio: false, // 保持比例
         }
       })

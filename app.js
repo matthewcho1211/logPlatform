@@ -179,7 +179,7 @@ app.get("/", async (req, res) => {
   //獲取全部log
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.10",
+      index: "winlogbeat-2023.11",
       aggs: {
         result: {
           date_histogram: {
@@ -329,7 +329,6 @@ app.get("/", async (req, res) => {
       },
     });
 
-
     const topEventIds = result.aggregations.top_event_ids.buckets.map(
       (bucket) => ({
         eventId: bucket.key,
@@ -343,8 +342,7 @@ app.get("/", async (req, res) => {
     res.status(500).json({ error: "Elasticsearch 查询错误" });
   }
 
-  try{
-
+  try {
     const result = await client.search({
       index: "winlogbeat-2023.11",
       size: 0,
@@ -352,34 +350,30 @@ app.get("/", async (req, res) => {
         aggs: {
           event_ids: {
             terms: {
-              field: "event.code",
+              field: "winlog.event_id",
               size: 1000,
-              
             },
           },
         },
       },
     });
 
-    const eventid_bucket = result.aggregations.event_ids.buckets
-    console.log(eventid_bucket)
-    const eventid_label = []
-    const eventid_count = []
+    const eventid_bucket = result.aggregations.event_ids.buckets;
+    console.log(eventid_bucket);
+    const eventid_label = [];
+    const eventid_count = [];
 
-    eventid_bucket.forEach((item) =>{
-      eventid_label.push(item.key)
-      eventid_count.push(item.doc_count)
-    }
-    )
+    eventid_bucket.forEach((item) => {
+      eventid_label.push(item.key);
+      eventid_count.push(item.doc_count);
+    });
     res.locals.eventid_label = eventid_label;
     res.locals.eventid_count = eventid_count;
-    console.log(eventid_label)
-    console.log(eventid_count)
-
-  }catch(error){
-    console.log("找不到event id")
+    console.log(eventid_label);
+    console.log(eventid_count);
+  } catch (error) {
+    console.log("找不到event id");
   }
-
 
   res.render("dashboard");
 });
