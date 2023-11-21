@@ -108,6 +108,14 @@ app.get("/searchLogs", async (req, res) => {
       });
     }
 
+    if (logLevel) {
+      queryBody.query.bool.must.push({
+        term: {
+          "log.level": logLevel,
+        },
+      });
+    }
+
     const result = await client.search({
       index: index,
       size: 1000,
@@ -381,43 +389,75 @@ app.get("/", async (req, res) => {
   }
 
 
-  res.render("dashboard");
-});
-
-//查各種destinationIp有幾個(poker看這邊，你可以把這裡整個try catch丟到上面的dashboard，然後再res.locals你想要傳給前端的資料屬性，你可以參考我前面的top event ids)
-app.get("/getDestinationIp", async (req, res) => {
+// 查詢log.level
   try {
-    const aggs = {
-      result: {
-        terms: {
-          field: "winlog.event_data.DestinationIp",
-          order: [{ _count: "desc" }],
-        },
-      },
-    };
-
     const result = await client.search({
       index: "winlogbeat-2023.11",
       size: 0,
-      aggs: aggs,
+      body: {
+        aggs: {
+          top_level_ids: {
+            terms: {
+              field: "log.level",
+              size: 5,
+              order: { _count: "desc" },
+            },
+          },
+        },
+      },
     });
 
-    const data = result.aggregations.result.buckets;
-    console.log(data);
+    const toplevels = result.aggregations.top_level_ids.buckets.map(
+      (bucket) => ({
+        level: bucket.key,
+        count: bucket.doc_count,
+      })
+    );
 
-    // const countryData = await Promise.all(
-    //   data.map(async (bucket) => {
-    //     const ip = bucket.key;
-    //     const ipInfo = await getCountryCityFromIp(ip);
-    //     const count = bucket.doc_count;
-    //     return { ip, ...ipInfo, count };
-    //   })
-    // );
+    res.locals.toplevels = toplevels;
+  } catch (error) {
+    console.error("Elasticsearch 查询错误:", error);
+    res.status(500).json({ error: "Elasticsearch 查询错误" });
+  }
+
+
+
+
+    // ip來源國家
+  try {
+    // 小酌測試這裡
+    // const aggs = {
+    //   result: {
+    //     terms: {
+    //       field: "winlog.event_data.DestinationIp",
+    //       order: [{ _count: "desc" }],
+    //     },
+    //   },
+    // };
+
+    // const result = await client.search({
+    //   index: "winlogbeat-2023.11",
+    //   size: 0,
+    //   aggs: aggs,
+    // });
+    // const topIps = result.aggregations.result.buckets.map((bucket) => ({
+    //   ip: bucket.key,
+    //   count: bucket.doc_count,
+    // }));
+  
+    // res.locals.topIps = topIps;
+
+
+// 測試用假資料 Poker用這個
+    const data = [
+      { key: '35.215.173.207', doc_count: 1 } 
+    ];
 
     const countryData = await Promise.all(
       data.map(async (bucket) => {
         const ip = bucket.key;
         const count = bucket.doc_count;
+
 
         try {
           // 獲取城市信息
@@ -429,7 +469,7 @@ app.get("/getDestinationIp", async (req, res) => {
           if (country && country.isoCode) {
             country = country.isoCode;
           }
-          console.log(country);
+          // console.log(country);
 
           return { ip, country, count };
         } catch (error) {
@@ -439,13 +479,22 @@ app.get("/getDestinationIp", async (req, res) => {
         }
       })
     );
+    const topIps = data.map((bucket) => ({
+      ip: bucket.key,
+      count: bucket.doc_count,
+    }));
+    
+    res.locals.topIps = topIps;
 
     console.log(countryData);
-    res.json(countryData);
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
   }
+
+
+  res.render("dashboard");
 });
+
 
 async function getCountryCityFromIp(ip) {
   return new Promise((resolve, reject) => {
@@ -469,7 +518,7 @@ app.get("/search", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
 
-const port = 3000;
+const port = 3200;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
