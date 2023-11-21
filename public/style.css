@@ -31,3 +31,7 @@ body {
   /* 也可以添加 max-width，以控制文本宽度 */
   max-width: 400px; /* 自定义宽度值 */
 }
+.custom-width {
+  width: 60%;
+  margin: auto; /* Center the list group */
+}

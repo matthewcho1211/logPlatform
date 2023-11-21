@@ -1,112 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-
+    <title>日誌收容平台</title>
     <link rel="stylesheet" href="/style.css" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-      crossorigin="anonymous"
-    ></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  </head>
-  <body>
+</head>
+<body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand" href="/">日誌收容平台</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="/search">查找日志</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/">查找儀表板</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">查找異樣log</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">登出</a>
-          </li>
-        </ul>
-      </div>
+        <a class="navbar-brand" href="/">日誌收容平台</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/search">查找日志</a></li>
+                <li class="nav-item"><a class="nav-link" href="/">查找儀表板</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">查找異樣log</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout">登出</a></li>
+            </ul>
+        </div>
     </nav>
-    <div class="container">
-      <h1>日誌數據</h1>
-      <form action="/searchLogs" method="GET">
-        <label for="startDate">開始日期:</label>
-        <input type="date" name="startDate" id="startDate" required />
-        <label for="endDate">結束日期:</label>
-        <input type="date" name="endDate" id="endDate" required />
-
-        <label for="host">選擇主機:</label>
-        <select name="host" id="host" required>
-          <option value="LAPTOP-2H1PVO0T">LAPTOP-2H1PVO0T</option>
-          <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
-          <option value="frankwin7-PC">frankwin7-PC</option>
-          <option value="Poker">Poker</option>
-        </select>
-        <label for="eventId">輸入eventID:</label>
-        <input type="text" name="eventId" id="eventId" />
-
-        <label for="index">選擇Index:</label>
-        <select name="index" id="index" required></select>
-        <button type="submit">搜索日誌</button>
-      </form>
+    <div class="container mt-4">
+        <h1 class="mb-4">日誌數據</h1>
+        <form action="/searchLogs" method="GET" class="mb-4">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="startDate" class="form-label">開始日期和時間:</label>
+                <input type="datetime-local" name="startDate" id="startDate" class="form-control" required />
+              </div>
+              <div class="col-md-4">
+                <label for="endDate" class="form-label">結束日期和時間:</label>
+                <input type="datetime-local" name="endDate" id="endDate" class="form-control" required />
+              </div>
+            
+              <div class="col-md-4">
+                <label for="host" class="form-label">選擇主機:</label>
+                <select name="host" id="host" class="form-select" required>
+                  <option value="LAPTOP-2H1PVO0T">LAPTOP-2H1PVO0T</option>
+                  <option value="LAPTOP-GPPNAMEN">LAPTOP-GPPNAMEN</option>
+                  <option value="frankwin7-PC">frankwin7-PC</option>
+                  <option value="Poker">Poker</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="eventId" class="form-label">輸入eventID:</label>
+                <input type="text" name="eventId" id="eventId" class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <label for="index" class="form-label">選擇Index:</label>
+                <select name="index" id="index" class="form-select" required></select>
+              </div>
+              <div class="col-md-4">
+                <label for="logLevel" class="form-label">日誌級別:</label>
+                <select name="logLevel" id="logLevel" class="form-select">
+                  <option value="">所有級別</option>
+                  <option value="資訊">資訊</option>
+                  <option value="警告">警告</option>
+                  <option value="錯誤">錯誤</option>
+                </select>
+              </div>
+              <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-success">搜索日誌</button>
+              </div>
+            </div>
+        </form>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">index</th>
+                    <th scope="col">@timestamp</th>
+                    <th scope="col">hostname</th>
+                    <th scope="col">log_level</th>
+                    <th scope="col">event_id</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (error) { %>
+                    <tr><td colspan="6" class="text-danger"><%= error %></td></tr>
+                <% } else if (logs) { %>
+                    <% logs.forEach(function(log) { %>
+                        <tr>
+                            <td><a href="/logDetail/<%= log._id %>"><%= log._id %></a></td>
+                            <td><%= log._index %></td>
+                            <td><%= log._source["@timestamp"] %></td>
+                            <td><%= log._source.host.hostname %></td>
+                            <td><%= log._source.log.level %></td>
+                            <td><%= log._source.winlog.event_id %></td>
+                        </tr>
+                    <% }); %>
+                <% } %>
+            </tbody>
+        </table>
     </div>
+</body>
+</html>
 
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">id</th>
-          <th scope="col">index</th>
-          <th scope="col">@timestamp</th>
-          <th scope="col">hostname</th>
-          <th scope="col">log_level</th>
-          <th scope="col">event_id</th>
-        </tr>
-      </thead>
-
-      <% if (error) { %>
-      <p class="text-danger"><%= error %></p>
-      <% } else if (logs) { %>
-      <tbody>
-        <% logs.forEach(function(log) { %>
-        <tr>
-          <td><a href="/logDetail/<%= log._id %>"><%= log._id %></a></td>
-          <td><%= log._index %></td>
-          <td><%= log._source["@timestamp"] %></td>
-          <td><%= log._source.host.hostname %></td>
-          <td><%= log._source.log.level %></td>
-          <td><%= log._source.winlog.event_id %></td>
-        </tr>
-
-        <% }); %>
-      </tbody>
-      <% } %>
-    </table>
-    <script>
+<script>
       function generateIndexOption(year, month) {
-        return [`winlogbeat-${year}.${month}`];
+        return [`winlogbeat-${year}.${month}`]
       }
 
       function updateIndexOptions() {
@@ -144,5 +140,3 @@
       // 在頁面加載時更新index選項
       window.onload = updateIndexOptions;
     </script>
-  </body>
-</html>
