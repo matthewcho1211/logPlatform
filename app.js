@@ -25,14 +25,14 @@ app.use(
   })
 );
 
-const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
-// const client = new Client({
-//   node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
-//   auth: {
-//     username: "elastic", // Elasticsearch用戶名
-//     password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
-//   },
-// });
+// const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
+const client = new Client({
+  node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
+  auth: {
+    username: "elastic", // Elasticsearch用戶名
+    password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
+  },
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -69,7 +69,7 @@ app.get("/logout", (req, res) => {
 });
 app.get("/searchLogs", async (req, res) => {
   try {
-    const { startDate, endDate, host, index, eventId } = req.query;
+    const { startDate, endDate, host, index, eventId , logLevel} = req.query;
 
     if (!startDate || !endDate || !host || !index) {
       return res.render("search", {
@@ -108,6 +108,13 @@ app.get("/searchLogs", async (req, res) => {
       });
     }
 
+    if (logLevel) {
+      queryBody.query.bool.must.push({
+        term: {
+          "log.level": logLevel,
+        },
+      });
+    }
     const result = await client.search({
       index: index,
       size: 1000,
@@ -375,56 +382,85 @@ app.get("/", async (req, res) => {
     console.log("找不到event id");
   }
 
-  res.render("dashboard");
-});
-
-//查各種destinationIp有幾個(poker看這邊，你可以把這裡整個try catch丟到上面的dashboard，然後再res.locals你想要傳給前端的資料屬性，你可以參考我前面的top event ids)
-app.get("/getDestinationIp", async (req, res) => {
+  // 查詢log.level
   try {
-    const aggs = {
-      result: {
-        terms: {
-          field: "winlog.event_data.DestinationIp",
-          order: [{ _count: "desc" }],
-        },
-      },
-    };
-
     const result = await client.search({
       index: "winlogbeat-2023.11",
       size: 0,
-      aggs: aggs,
+      body: {
+        aggs: {
+          top_level_ids: {
+            terms: {
+              field: "log.level",
+              size: 5,
+              order: { _count: "desc" },
+            },
+          },
+        },
+      },
     });
 
-    const data = result.aggregations.result.buckets;
-    console.log(data);
+    const toplevels = result.aggregations.top_level_ids.buckets.map(
+      (bucket) => ({
+        level: bucket.key,
+        count: bucket.doc_count,
+      })
+    );
 
-    // const countryData = await Promise.all(
-    //   data.map(async (bucket) => {
-    //     const ip = bucket.key;
-    //     const ipInfo = await getCountryCityFromIp(ip);
-    //     const count = bucket.doc_count;
-    //     return { ip, ...ipInfo, count };
-    //   })
-    // );
+    res.locals.toplevels = toplevels;
+  } catch (error) {
+    console.error("Elasticsearch 查询错误:", error);
+    res.status(500).json({ error: "Elasticsearch 查询错误" });
+  }
 
+  // ip來源國家
+  try {
+  // 小酌測試這裡
+    // const aggs = {
+    //   result: {
+    //     terms: {
+    //       field: "winlog.event_data.DestinationIp",
+    //       order: [{ _count: "desc" }],
+    //     },
+    //   },
+    // };
+    
+    // const result = await client.search({
+    //   index: "winlogbeat-2023.11",
+    //   size: 0,
+    //   aggs: aggs,
+    // });
+    // const topIps = result.aggregations.result.buckets.map((bucket) => ({
+    //   ip: bucket.key,
+    //   count: bucket.doc_count,
+    // }));
+      
+    // res.locals.topIps = topIps;
+    
+    
+    // 測試用假資料 Poker用這個
+    const data = [
+      { key: '35.215.173.207', doc_count: 1 } 
+    ];
+    
     const countryData = await Promise.all(
       data.map(async (bucket) => {
         const ip = bucket.key;
         const count = bucket.doc_count;
-
+    
+    
         try {
           // 獲取城市信息
           const ip_data = await serviceClient.city(ip);
           console.log(ip_data);
-
+    
           // 提取國家和城市信息
           let country = ip_data.country || ip_data.registeredCountry;
           if (country && country.isoCode) {
             country = country.isoCode;
           }
-          console.log(country);
-
+          // console.log(country);
+    
           return { ip, country, count };
         } catch (error) {
           console.error("讀取 GeoIP 數據時發生錯誤:", error);
@@ -433,13 +469,22 @@ app.get("/getDestinationIp", async (req, res) => {
         }
       })
     );
-
+    const topIps = data.map((bucket) => ({
+      ip: bucket.key,
+      count: bucket.doc_count,
+    }));
+        
+    res.locals.topIps = topIps;
+    
     console.log(countryData);
-    res.json(countryData);
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
   }
+    
+  res.render("dashboard");
 });
+
+
 
 async function getCountryCityFromIp(ip) {
   return new Promise((resolve, reject) => {

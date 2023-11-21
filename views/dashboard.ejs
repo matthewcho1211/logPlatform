@@ -83,6 +83,32 @@
             </div>
           </div>
         </div>
+        <!-- 看ip來源國家 -->
+        <div class="row">
+          <div class="col-md-6">
+            <h1>IP Address Information</h1>
+            <ul class="list-group">
+              <% topIps.forEach(function(ipInfo) { %>
+              <li class="list-group-item">
+                IP: <%= ipInfo.ip %>, Count: <%= ipInfo.count %>
+              </li>
+              <% }); %>
+            </ul>
+          </div>
+        </div>
+        <!-- 看log level -->
+        <div class="row">
+          <div class="col-md-6">
+            <h1>level</h1>
+            <ul class="list-group">
+              <% toplevels.forEach(function(levelInfo) { %>
+              <li class="list-group-item">
+                level: <%= levelInfo.level %>, Count: <%= levelInfo.count %>
+              </li>
+              <% }); %>
+            </ul>
+          </div>
+        </div>
         <div class="w-75 container">
           <h2>Monthly Chart</h2>
           <div class="d-flex justify-content-center">
