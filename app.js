@@ -182,6 +182,62 @@ app.get("/logDetail/:logId", async (req, res) => {
 //   }
 // });
 
+//圖表標準化的模式
+async function searchLogs(startDate, endDate,timeRange) {
+  let currentIndexDate = new Date(startDate);
+  const endIndexDate = new Date(endDate);
+  let format ;
+  if(timeRange == 'hour'){
+    format = 'dd-hh'
+  }else if(timeRange == 'day'){
+    format = 'MM-dd'
+  }else if(timeRange == 'week'){
+    format = 'yyyy-ww'
+  }else if(timeRange == 'month'){
+    format = 'MM'
+  }
+  let indices = [];
+
+
+  while (currentIndexDate <= endIndexDate) {
+      const year = currentIndexDate.getFullYear();
+      const month = String(currentIndexDate.getMonth() + 1).padStart(2, '0');
+      const indexName = `winlogbeat-${year}.${month}`;
+      if (!indices.includes(indexName)) {
+          indices.push(indexName);
+      }
+      currentIndexDate.setMonth(currentIndexDate.getMonth() + 1);
+  }
+
+  // 執行 Elasticsearch 查詢
+  const response = await client.search({
+      index: indices,
+      body: {
+          query: {
+              range: {
+                  "@timestamp": {
+                      gte: startDate,
+                      lte: endDate
+                  }
+              }
+          },
+          aggs: {
+              logs_over_time: {
+                  date_histogram: {
+                      field: "@timestamp",
+                      calendar_interval: timeRange,
+                      format:format
+                  }
+              }
+          },
+          size: 0
+      }
+  });
+  const barchartdata = response.aggregations.logs_over_time.buckets
+  console.log(barchartdata)
+  return barchartdata;
+}
+
 app.get("/", async (req, res) => {
   //獲取全部log
   try {
@@ -473,6 +529,29 @@ app.get("/", async (req, res) => {
     res.locals.topIps = countryData;
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
+  }
+
+  try{
+    const currentDate = new Date()
+    const timeRange = req.query.timeRange || 'hour'
+    const startDate = req.query.startDate || currentDate.toISOString().split('T')[0]
+    const endDate = req.query.endDate || currentDate.toISOString().split('T')[0]
+
+    const result = await searchLogs(startDate, endDate,timeRange);
+    
+    const barlabel = [] 
+    const bardata = []
+    result.forEach((item) => {
+      barlabel.push(item.key_as_string);
+      bardata.push(item.doc_count);
+    });
+    console.log(barlabel,bardata)
+    
+    res.locals.barlabel = barlabel
+    res.locals.bardata = bardata
+
+  }catch(error){
+
   }
 
   res.render("dashboard");

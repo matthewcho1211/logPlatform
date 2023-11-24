@@ -115,6 +115,27 @@
             <canvas id="monthlyChart"></canvas>
           </div>
         </div>
+        <div class="row">
+          <form action="/" method="get">
+            <label for="startDate">開始日期:</label>
+            <input type="date" name="startDate" id="startDate" required />
+            <label for="endDate">結束日期:</label>
+            <input type="date" name="endDate" id="endDate" required />
+            <label for="timeRange">選擇時間範圍：</label>
+            <select name="timeRange" id="timeRange">
+              <option value="month">每月</option>
+              <option value="week">每周</option>
+              <option value="day">每日</option>
+              <option value="hour">每小時</option>
+            </select>
+            <button type="submit">搜索</button>
+          </form>
+        </div>
+        <div class="row">
+          <div>
+            <canvas id="myChart5"></canvas>
+          </div>
+        </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -127,11 +148,15 @@
       const chartdataforhour = <%- JSON.stringify(hourlychartdata) %>;
       const eventidlabel = <%- JSON.stringify(eventid_label) %>;
       const eventidcount = <%- JSON.stringify(eventid_count) %>;
+      const labelforbar = <%- JSON.stringify(barlabel) %>;
+      const dataforbar = <%- JSON.stringify(bardata) %>;
 
       const ctx = document.getElementById('monthlyChart').getContext('2d');
       const ctx2 = document.getElementById('weeklyChart').getContext('2d');
       const ctx3 = document.getElementById('hourlyChart').getContext('2d');
       const ctx4 = document.getElementById('event_idChart').getContext('2d');
+      const ctx5 = document.getElementById('myChart5').getContext('2d');
+
 
       new Chart(ctx, {
         type: 'bar',
@@ -208,6 +233,18 @@
           maintainAspectRatio: false, // 保持比例
         }
       })
+
+      new Chart(ctx5,{
+        type:'bar',
+        data:{
+          labels:labelforbar,
+          datasets:[{
+            label:'doc_count',
+            data:dataforbar
+          }]
+        }
+      })
+
     </script>
   </body>
 </html>
