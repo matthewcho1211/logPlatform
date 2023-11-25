@@ -186,14 +186,19 @@ app.get("/logDetail/:logId", async (req, res) => {
 async function searchLogs(startDate, endDate,timeRange) {
   let currentIndexDate = new Date(startDate);
   const endIndexDate = new Date(endDate);
+  let fixed_interval;
   let format ;
   if(timeRange == 'hour'){
-    format = 'dd-hh'
+    fixed_interval = "1h",
+    format = 'dd-HH'
   }else if(timeRange == 'day'){
+    fixed_interval = "1d",
     format = 'MM-dd'
   }else if(timeRange == 'week'){
+    fixed_interval = "1w",
     format = 'yyyy-ww'
   }else if(timeRange == 'month'){
+    fixed_interval = "1M",
     format = 'MM'
   }
   let indices = [];
@@ -225,8 +230,11 @@ async function searchLogs(startDate, endDate,timeRange) {
               logs_over_time: {
                   date_histogram: {
                       field: "@timestamp",
-                      calendar_interval: timeRange,
-                      format:format
+                      fixed_interval:fixed_interval,
+                      format:format,
+                      time_zone: "+08:00",
+                      min_doc_count: 0,
+                      
                   }
               }
           },
@@ -234,7 +242,7 @@ async function searchLogs(startDate, endDate,timeRange) {
       }
   });
   const barchartdata = response.aggregations.logs_over_time.buckets
-  console.log(barchartdata)
+  //console.log(barchartdata)
   return barchartdata;
 }
 
@@ -432,8 +440,8 @@ app.get("/", async (req, res) => {
     });
     res.locals.eventid_label = eventid_label;
     res.locals.eventid_count = eventid_count;
-    console.log(eventid_label);
-    console.log(eventid_count);
+    //console.log(eventid_label);
+   // console.log(eventid_count);
   } catch (error) {
     console.log("找不到event id");
   }
@@ -518,8 +526,8 @@ app.get("/", async (req, res) => {
         }
       })
     );
-    console.log(data);
-    console.log(countryData);
+    //console.log(data);
+    //console.log(countryData);
     // const topIps = data.map((bucket) => ({
     //   ip: bucket.key,
     //   count: bucket.doc_count,
@@ -536,6 +544,7 @@ app.get("/", async (req, res) => {
     const timeRange = req.query.timeRange || 'hour'
     const startDate = req.query.startDate || currentDate.toISOString().split('T')[0]
     const endDate = req.query.endDate || currentDate.toISOString().split('T')[0]
+    console.log(startDate,endDate)
 
     const result = await searchLogs(startDate, endDate,timeRange);
     
@@ -545,7 +554,7 @@ app.get("/", async (req, res) => {
       barlabel.push(item.key_as_string);
       bardata.push(item.doc_count);
     });
-    console.log(barlabel,bardata)
+    //console.log(barlabel,bardata)
     
     res.locals.barlabel = barlabel
     res.locals.bardata = bardata
