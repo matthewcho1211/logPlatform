@@ -69,11 +69,11 @@ app.get("/logout", (req, res) => {
 });
 app.get("/searchLogs", async (req, res) => {
   try {
-    const { startDate, endDate, host, index, eventId, logLevel } = req.query;
+    const { startDate, endDate, host, eventId, logLevel } = req.query;
 
-    if (!startDate || !endDate || !host || !index) {
+    if (!startDate || !endDate || !host) {
       return res.render("search", {
-        error: "StartDate, endDate, host, and index are all required.",
+        error: "StartDate, endDate, host, are all required.",
       });
     }
 
@@ -116,7 +116,7 @@ app.get("/searchLogs", async (req, res) => {
       });
     }
     const result = await client.search({
-      index: index,
+      index: "winlogbeat-*",
       size: 1000,
       body: queryBody,
     });
@@ -136,7 +136,7 @@ app.get("/logDetail/:logId", async (req, res) => {
     const logId = req.params.logId;
 
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index: "winlogbeat-*",
       body: {
         query: {
           term: {
@@ -183,65 +183,59 @@ app.get("/logDetail/:logId", async (req, res) => {
 // });
 
 //圖表標準化的模式
-async function searchLogs(startDate, endDate,timeRange) {
+async function searchLogs(startDate, endDate, timeRange) {
   let currentIndexDate = new Date(startDate);
   const endIndexDate = new Date(endDate);
   let fixed_interval;
-  let format ;
-  if(timeRange == 'hour'){
-    fixed_interval = "1h",
-    format = 'dd-HH'
-  }else if(timeRange == 'day'){
-    fixed_interval = "1d",
-    format = 'MM-dd'
-  }else if(timeRange == 'week'){
-    fixed_interval = "1w",
-    format = 'yyyy-ww'
-  }else if(timeRange == 'month'){
-    fixed_interval = "1M",
-    format = 'MM'
+  let format;
+  if (timeRange == "hour") {
+    (fixed_interval = "1h"), (format = "dd-HH");
+  } else if (timeRange == "day") {
+    (fixed_interval = "1d"), (format = "MM-dd");
+  } else if (timeRange == "week") {
+    (fixed_interval = "1w"), (format = "yyyy-ww");
+  } else if (timeRange == "month") {
+    (fixed_interval = "1M"), (format = "MM");
   }
   let indices = [];
 
-
   while (currentIndexDate <= endIndexDate) {
-      const year = currentIndexDate.getFullYear();
-      const month = String(currentIndexDate.getMonth() + 1).padStart(2, '0');
-      const indexName = `winlogbeat-${year}.${month}`;
-      if (!indices.includes(indexName)) {
-          indices.push(indexName);
-      }
-      currentIndexDate.setMonth(currentIndexDate.getMonth() + 1);
+    const year = currentIndexDate.getFullYear();
+    const month = String(currentIndexDate.getMonth() + 1).padStart(2, "0");
+    const indexName = `winlogbeat-${year}.${month}`;
+    if (!indices.includes(indexName)) {
+      indices.push(indexName);
+    }
+    currentIndexDate.setMonth(currentIndexDate.getMonth() + 1);
   }
 
   // 執行 Elasticsearch 查詢
   const response = await client.search({
-      index: indices,
-      body: {
-          query: {
-              range: {
-                  "@timestamp": {
-                      gte: startDate,
-                      lte: endDate
-                  }
-              }
+    index: indices,
+    body: {
+      query: {
+        range: {
+          "@timestamp": {
+            gte: startDate,
+            lte: endDate,
           },
-          aggs: {
-              logs_over_time: {
-                  date_histogram: {
-                      field: "@timestamp",
-                      fixed_interval:fixed_interval,
-                      format:format,
-                      time_zone: "+08:00",
-                      min_doc_count: 0,
-                      
-                  }
-              }
+        },
+      },
+      aggs: {
+        logs_over_time: {
+          date_histogram: {
+            field: "@timestamp",
+            fixed_interval: fixed_interval,
+            format: format,
+            time_zone: "+08:00",
+            min_doc_count: 0,
           },
-          size: 0
-      }
+        },
+      },
+      size: 0,
+    },
   });
-  const barchartdata = response.aggregations.logs_over_time.buckets
+  const barchartdata = response.aggregations.logs_over_time.buckets;
   //console.log(barchartdata)
   return barchartdata;
 }
@@ -441,7 +435,7 @@ app.get("/", async (req, res) => {
     res.locals.eventid_label = eventid_label;
     res.locals.eventid_count = eventid_count;
     //console.log(eventid_label);
-   // console.log(eventid_count);
+    // console.log(eventid_count);
   } catch (error) {
     console.log("找不到event id");
   }
@@ -539,29 +533,28 @@ app.get("/", async (req, res) => {
     console.error("Elasticsearch 查詢錯誤:", error);
   }
 
-  try{
-    const currentDate = new Date()
-    const timeRange = req.query.timeRange || 'hour'
-    const startDate = req.query.startDate || currentDate.toISOString().split('T')[0]
-    const endDate = req.query.endDate || currentDate.toISOString().split('T')[0]
-    console.log(startDate,endDate)
+  try {
+    const currentDate = new Date();
+    const timeRange = req.query.timeRange || "hour";
+    const startDate =
+      req.query.startDate || currentDate.toISOString().split("T")[0];
+    const endDate =
+      req.query.endDate || currentDate.toISOString().split("T")[0];
+    console.log(startDate, endDate);
 
-    const result = await searchLogs(startDate, endDate,timeRange);
-    
-    const barlabel = [] 
-    const bardata = []
+    const result = await searchLogs(startDate, endDate, timeRange);
+
+    const barlabel = [];
+    const bardata = [];
     result.forEach((item) => {
       barlabel.push(item.key_as_string);
       bardata.push(item.doc_count);
     });
     //console.log(barlabel,bardata)
-    
-    res.locals.barlabel = barlabel
-    res.locals.bardata = bardata
 
-  }catch(error){
-
-  }
+    res.locals.barlabel = barlabel;
+    res.locals.bardata = bardata;
+  } catch (error) {}
 
   res.render("dashboard");
 });
