@@ -189,13 +189,13 @@ async function searchLogs(startDate, endDate, timeRange) {
   let fixed_interval;
   let format;
   if (timeRange == "hour") {
-    (fixed_interval = "1h"), (format = "dd-HH");
+    (format = "dd-HH");
   } else if (timeRange == "day") {
-    (fixed_interval = "1d"), (format = "MM-dd");
+    (format = "MM-dd");
   } else if (timeRange == "week") {
-    (fixed_interval = "1w"), (format = "yyyy-ww");
+    (format = "yyyy-ww");
   } else if (timeRange == "month") {
-    (fixed_interval = "1M"), (format = "MM");
+    (format = "MM");
   }
   let indices = [];
 
@@ -225,7 +225,7 @@ async function searchLogs(startDate, endDate, timeRange) {
         logs_over_time: {
           date_histogram: {
             field: "@timestamp",
-            fixed_interval: fixed_interval,
+            calendar_interval:timeRange,
             format: format,
             time_zone: "+08:00",
             min_doc_count: 0,
@@ -510,7 +510,7 @@ app.get("/", async (req, res) => {
           if (country && country.isoCode) {
             country = country.isoCode;
           }
-          // console.log(country);
+           console.log(country);
 
           return { ip, country, count };
         } catch (error) {
