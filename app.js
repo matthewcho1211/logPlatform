@@ -182,6 +182,70 @@ app.get("/logDetail/:logId", async (req, res) => {
 //   }
 // });
 
+//圖表標準化的模式
+async function searchLogs(startDate, endDate,timeRange) {
+  let currentIndexDate = new Date(startDate);
+  const endIndexDate = new Date(endDate);
+  let fixed_interval;
+  let format ;
+  if(timeRange == 'hour'){
+    fixed_interval = "1h",
+    format = 'dd-HH'
+  }else if(timeRange == 'day'){
+    fixed_interval = "1d",
+    format = 'MM-dd'
+  }else if(timeRange == 'week'){
+    fixed_interval = "1w",
+    format = 'yyyy-ww'
+  }else if(timeRange == 'month'){
+    fixed_interval = "1M",
+    format = 'MM'
+  }
+  let indices = [];
+
+
+  while (currentIndexDate <= endIndexDate) {
+      const year = currentIndexDate.getFullYear();
+      const month = String(currentIndexDate.getMonth() + 1).padStart(2, '0');
+      const indexName = `winlogbeat-${year}.${month}`;
+      if (!indices.includes(indexName)) {
+          indices.push(indexName);
+      }
+      currentIndexDate.setMonth(currentIndexDate.getMonth() + 1);
+  }
+
+  // 執行 Elasticsearch 查詢
+  const response = await client.search({
+      index: indices,
+      body: {
+          query: {
+              range: {
+                  "@timestamp": {
+                      gte: startDate,
+                      lte: endDate
+                  }
+              }
+          },
+          aggs: {
+              logs_over_time: {
+                  date_histogram: {
+                      field: "@timestamp",
+                      fixed_interval:fixed_interval,
+                      format:format,
+                      time_zone: "+08:00",
+                      min_doc_count: 0,
+                      
+                  }
+              }
+          },
+          size: 0
+      }
+  });
+  const barchartdata = response.aggregations.logs_over_time.buckets
+  //console.log(barchartdata)
+  return barchartdata;
+}
+
 app.get("/", async (req, res) => {
   //獲取全部log
   try {
@@ -376,8 +440,8 @@ app.get("/", async (req, res) => {
     });
     res.locals.eventid_label = eventid_label;
     res.locals.eventid_count = eventid_count;
-    console.log(eventid_label);
-    console.log(eventid_count);
+    //console.log(eventid_label);
+   // console.log(eventid_count);
   } catch (error) {
     console.log("找不到event id");
   }
@@ -462,8 +526,8 @@ app.get("/", async (req, res) => {
         }
       })
     );
-    console.log(data);
-    console.log(countryData);
+    //console.log(data);
+    //console.log(countryData);
     // const topIps = data.map((bucket) => ({
     //   ip: bucket.key,
     //   count: bucket.doc_count,
@@ -473,6 +537,30 @@ app.get("/", async (req, res) => {
     res.locals.topIps = countryData;
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
+  }
+
+  try{
+    const currentDate = new Date()
+    const timeRange = req.query.timeRange || 'hour'
+    const startDate = req.query.startDate || currentDate.toISOString().split('T')[0]
+    const endDate = req.query.endDate || currentDate.toISOString().split('T')[0]
+    console.log(startDate,endDate)
+
+    const result = await searchLogs(startDate, endDate,timeRange);
+    
+    const barlabel = [] 
+    const bardata = []
+    result.forEach((item) => {
+      barlabel.push(item.key_as_string);
+      bardata.push(item.doc_count);
+    });
+    //console.log(barlabel,bardata)
+    
+    res.locals.barlabel = barlabel
+    res.locals.bardata = bardata
+
+  }catch(error){
+
   }
 
   res.render("dashboard");
