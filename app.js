@@ -189,13 +189,13 @@ async function searchLogs(startDate, endDate, timeRange) {
   let fixed_interval;
   let format;
   if (timeRange == "hour") {
-    (format = "dd-HH");
+    format = "dd-HH";
   } else if (timeRange == "day") {
-    (format = "MM-dd");
+    format = "MM-dd";
   } else if (timeRange == "week") {
-    (format = "yyyy-ww");
+    format = "yyyy-ww";
   } else if (timeRange == "month") {
-    (format = "MM");
+    format = "MM";
   }
   let indices = [];
 
@@ -218,7 +218,7 @@ async function searchLogs(startDate, endDate, timeRange) {
           "@timestamp": {
             gte: startDate,
             lte: endDate,
-            time_zone:"+08:00"
+            time_zone: "+08:00",
           },
         },
       },
@@ -226,7 +226,7 @@ async function searchLogs(startDate, endDate, timeRange) {
         logs_over_time: {
           date_histogram: {
             field: "@timestamp",
-            calendar_interval:timeRange,
+            calendar_interval: timeRange,
             format: format,
             time_zone: "+08:00",
             min_doc_count: 0,
@@ -237,7 +237,7 @@ async function searchLogs(startDate, endDate, timeRange) {
     },
   });
   const barchartdata = response.aggregations.logs_over_time.buckets;
-  //console.log(barchartdata)
+  //console.log(barchartdata);
   return barchartdata;
 }
 
@@ -425,7 +425,7 @@ app.get("/", async (req, res) => {
     });
 
     const eventid_bucket = result.aggregations.event_ids.buckets;
-    console.log(eventid_bucket);
+    //console.log(eventid_bucket);
     const eventid_label = [];
     const eventid_count = [];
 
@@ -474,17 +474,16 @@ app.get("/", async (req, res) => {
 
   function getCountryCoordinates(countryCode) {
     return fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-        .then(response => response.json())
-        .then(data => {
-            return {
-                lat: data[0].latlng[0], 
-                lng: data[0].latlng[1]
-            };
-        })
-        .catch(error => console.error('Error:', error));
-}
+      .then((response) => response.json())
+      .then((data) => {
+        return {
+          lat: data[0].latlng[0],
+          lng: data[0].latlng[1],
+        };
+      })
+      .catch((error) => console.error("Error:", error));
+  }
 
-  
   // ip來源國家
   try {
     //小酌測試這裡
@@ -504,10 +503,10 @@ app.get("/", async (req, res) => {
     });
 
     //有資料再用下面這一行
-    //const data = result.aggregations.result.buckets;
+    const data = result.aggregations.result.buckets;
 
     // 測試用假資料 Poker用這個
-    const data = [{ key: "35.215.173.207", doc_count: 1 }];
+    //const data = [{ key: "35.215.173.207", doc_count: 1 }];
 
     const countryData = await Promise.all(
       data.map(async (bucket) => {
@@ -529,14 +528,17 @@ app.get("/", async (req, res) => {
           }
           //console.log(country);
 
-          
-      
-          
-          return { ip, country,latitude,longitude, count };
+          return { ip, country, latitude, longitude, count };
         } catch (error) {
           console.error("讀取 GeoIP 數據時發生錯誤:", error);
           // 適當地處理錯誤，例如返回默認值或將數據標記為無效。
-          return { ip, country: "Unknown", count };
+          return {
+            ip,
+            country: "Unknown",
+            latitude: "Unknown",
+            longitude: "Unknown",
+            count,
+          };
         }
       })
     );
@@ -548,10 +550,6 @@ app.get("/", async (req, res) => {
     //   count: bucket.doc_count,
     // }));
     // console.log(topIps);
-
-    countryData.forEach(item=>{
-      
-    })
     res.locals.topIps = countryData;
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);
