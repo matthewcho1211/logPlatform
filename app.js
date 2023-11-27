@@ -218,6 +218,7 @@ async function searchLogs(startDate, endDate, timeRange) {
           "@timestamp": {
             gte: startDate,
             lte: endDate,
+            time_zone:"+08:00"
           },
         },
       },
@@ -471,6 +472,19 @@ app.get("/", async (req, res) => {
     res.status(500).json({ error: "Elasticsearch 查询错误" });
   }
 
+  function getCountryCoordinates(countryCode) {
+    return fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+        .then(response => response.json())
+        .then(data => {
+            return {
+                lat: data[0].latlng[0], 
+                lng: data[0].latlng[1]
+            };
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+  
   // ip來源國家
   try {
     //小酌測試這裡
@@ -506,13 +520,19 @@ app.get("/", async (req, res) => {
           //console.log(ip_data);
 
           // 提取國家和城市信息
+          let latitude, longitude;
           let country = ip_data.country || ip_data.registeredCountry;
           if (country && country.isoCode) {
             country = country.isoCode;
+            latitude = ip_data.location.latitude;
+            longitude = ip_data.location.longitude;
           }
-           console.log(country);
+          //console.log(country);
 
-          return { ip, country, count };
+          
+      
+          
+          return { ip, country,latitude,longitude, count };
         } catch (error) {
           console.error("讀取 GeoIP 數據時發生錯誤:", error);
           // 適當地處理錯誤，例如返回默認值或將數據標記為無效。
@@ -520,14 +540,18 @@ app.get("/", async (req, res) => {
         }
       })
     );
+
     //console.log(data);
-    //console.log(countryData);
+    console.log(countryData);
     // const topIps = data.map((bucket) => ({
     //   ip: bucket.key,
     //   count: bucket.doc_count,
     // }));
     // console.log(topIps);
 
+    countryData.forEach(item=>{
+      
+    })
     res.locals.topIps = countryData;
   } catch (error) {
     console.error("Elasticsearch 查詢錯誤:", error);

@@ -6,7 +6,10 @@
     <title>Document</title>
     <link rel="stylesheet" href="/style.css" />
 
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -137,10 +140,16 @@
             <canvas id="myChart5"></canvas>
           </div>
         </div>
+        <div class="row">
+          <div id="mapid" style="height: 1000px;">
+
+          </div>
+        </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+      let ipdata = []
       const labels = <%- JSON.stringify(label) %>;
       const data = <%- JSON.stringify(chartdata) %>;
       const labelsforweek = <%- JSON.stringify(weeklylabel) %>;
@@ -151,6 +160,7 @@
       const eventidcount = <%- JSON.stringify(eventid_count) %>;
       const labelforbar = <%- JSON.stringify(barlabel) %>;
       const dataforbar = <%- JSON.stringify(bardata) %>;
+      ipdata = <%- JSON.stringify(topIps) %>;
 
       const ctx = document.getElementById('monthlyChart').getContext('2d');
       const ctx2 = document.getElementById('weeklyChart').getContext('2d');
@@ -245,6 +255,35 @@
           }]
         }
       })
+
+      var result = ipdata.reduce(function(acc, currentValue) {
+        if (!acc[currentValue.country]) {
+            acc[currentValue.country] = {
+                country: currentValue.country,
+                latitude: currentValue.latitude,
+                longitude: currentValue.longitude,
+                total_count: 0
+            };
+        }
+        acc[currentValue.country].total_count += currentValue.count;
+        return acc;
+    }, {});
+    
+    // 將結果轉換為陣列
+    var summarizedData = Object.values(result);
+    var map = L.map('mapid').setView([20, 0], 2); // 初始化地圖並設置視圖
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    summarizedData.forEach(function(item) {
+        var marker = L.marker([item.latitude, item.longitude]).addTo(map);
+        marker.bindPopup("<b>" + item.country + "</b><br>Total count: " + item.total_count);
+    });
+    
+    
 
     </script>
   </body>
