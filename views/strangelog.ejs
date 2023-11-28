@@ -45,7 +45,7 @@
     </nav>
     <div class="container mt-4">
       <h1 class="mb-4">日誌數據</h1>
-      <form action="/searchLogs" method="GET" class="mb-4">
+      <form action="/strangelog" method="GET" class="mb-4">
         <div class="row g-3">
           <div class="col-md-4">
             <label for="startDate" class="form-label">開始日期和時間:</label>
@@ -133,43 +133,3 @@
   </body>
 </html>
 
-<script>
-  function generateIndexOption(year, month) {
-    return [`winlogbeat-${year}.${month}`];
-  }
-
-  function updateIndexOptions() {
-    let date = new Date();
-    let currentYear = date.getFullYear();
-    let currentMonth = ("0" + (date.getMonth() + 1)).slice(-2); // 月份是從0開始的，所以+1
-
-    let select = document.getElementById("index");
-
-    // 假設我們要追溯的最早年份
-    for (let year = 2023; year <= currentYear; year++) {
-      for (let month = 10; month <= 12; month++) {
-        // 對於當前年份，只添加到當前月份
-        if (year === currentYear && month > date.getMonth() + 1) {
-          break;
-        }
-
-        let formattedMonth = ("0" + month).slice(-2);
-        let indexOptions = generateIndexOption(year, formattedMonth);
-
-        indexOptions.forEach(function (index) {
-          let optionExists = Array.from(select.options).some(
-            (option) => option.value === index
-          );
-          if (!optionExists) {
-            let option = document.createElement("option");
-            option.value = option.text = index;
-            select.appendChild(option);
-          }
-        });
-      }
-    }
-  }
-
-  // 在頁面加載時更新index選項
-  window.onload = updateIndexOptions;
-</script>
