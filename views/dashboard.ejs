@@ -62,13 +62,28 @@
       <div class="container">
         <h1>Dashboard</h1>
         <div class="row">
-          <div class="col-md-6">
-            <h2>Hourly Chart</h2>
-            <canvas id="hourlyChart"></canvas>
-          </div>
-          <div class="col-md-6">
-            <h2>Weekly Chart</h2>
-            <canvas id="weeklyChart"></canvas>
+          <form action="/" method="get">
+            <label for="startDate">開始日期:</label>
+            <input type="date" name="startDate" id="startDate" required />
+            <label for="endDate">結束日期:</label>
+            <input type="date" name="endDate" id="endDate" required />
+            <label for="timeRange">選擇時間範圍：</label>
+            <select name="timeRange" id="timeRange">
+              <option value="month">每月</option>
+              <option value="week">每周</option>
+              <option value="day">每日</option>
+              <option value="hour">每小時</option>
+            </select>
+            <button type="submit">搜索</button>
+          </form>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-8"><canvas id="logChart"></canvas></div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col-md-9">
+            <h1>地圖位置</h1>
+            <div id="mapid" style="height: 500px"></div>
           </div>
         </div>
         <div class="row">
@@ -101,9 +116,6 @@
               <% }); %>
             </ul>
           </div>
-        </div>
-        <!-- 看log level -->
-        <div class="row">
           <div class="col-md-6">
             <h1>level</h1>
             <ul class="list-group">
@@ -115,94 +127,23 @@
             </ul>
           </div>
         </div>
-        <div class="w-75 container">
-          <h2>Monthly Chart</h2>
-          <div class="d-flex justify-content-center">
-            <canvas id="monthlyChart"></canvas>
-          </div>
-        </div>
-        <div class="row">
-          <form action="/" method="get">
-            <label for="startDate">開始日期:</label>
-            <input type="date" name="startDate" id="startDate" required />
-            <label for="endDate">結束日期:</label>
-            <input type="date" name="endDate" id="endDate" required />
-            <label for="timeRange">選擇時間範圍：</label>
-            <select name="timeRange" id="timeRange">
-              <option value="month">每月</option>
-              <option value="week">每周</option>
-              <option value="day">每日</option>
-              <option value="hour">每小時</option>
-            </select>
-            <button type="submit">搜索</button>
-          </form>
-        </div>
-        <div class="row">
-          <div>
-            <canvas id="myChart5"></canvas>
-          </div>
-        </div>
-        <div class="row">
-          <div id="mapid" style="height: 1000px"></div>
-        </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
             let ipdata = []
-            const labels = <%- JSON.stringify(label) %>;
-            const data = <%- JSON.stringify(chartdata) %>;
-            const labelsforweek = <%- JSON.stringify(weeklylabel) %>;
-            const chartdataforweek = <%- JSON.stringify(weeklychartdata) %>;
-            const labelsforhour = <%- JSON.stringify(hourlylabel) %>;
-            const chartdataforhour = <%- JSON.stringify(hourlychartdata) %>;
+
             const eventidlabel = <%- JSON.stringify(eventid_label) %>;
             const eventidcount = <%- JSON.stringify(eventid_count) %>;
             const labelforbar = <%- JSON.stringify(barlabel) %>;
             const dataforbar = <%- JSON.stringify(bardata) %>;
             ipdata = <%- JSON.stringify(topIps) %>;
 
-            const ctx = document.getElementById('monthlyChart').getContext('2d');
-            const ctx2 = document.getElementById('weeklyChart').getContext('2d');
-            const ctx3 = document.getElementById('hourlyChart').getContext('2d');
-            const ctx4 = document.getElementById('event_idChart').getContext('2d');
-            const ctx5 = document.getElementById('myChart5').getContext('2d');
 
+            const event_idChart = document.getElementById('event_idChart').getContext('2d');
+            const logChart = document.getElementById('logChart').getContext('2d');
 
-            new Chart(ctx, {
-              type: 'bar',
-              data: {
-                labels: labels,
-                datasets: [{
-                  label:'doc_count',
-                  data: data
-                }]
-              },
-
-            });
-
-            new Chart(ctx2,{
-              type:'bar',
-              data:{
-                labels:labelsforweek,
-                datasets:[{
-                  label:'doc_count',
-                  data:chartdataforweek
-                }]
-              }
-            })
-            new Chart(ctx3,{
-              type:'bar',
-              data:{
-                labels:labelsforhour,
-                datasets:[{
-                  label:'doc_count',
-                  data:chartdataforhour
-                }]
-              }
-            })
-
-            new Chart(ctx4,{
+            new Chart(event_idChart,{
               type: 'pie',
               data: {
                 labels:eventidlabel,
@@ -245,7 +186,7 @@
               }
             })
 
-            new Chart(ctx5,{
+            new Chart(logChart,{
               type:'bar',
               data:{
                 labels:labelforbar,
