@@ -25,14 +25,31 @@ app.use(
   })
 );
 
-const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
-// const client = new Client({
-//   node: "http://192.168.0.103:9200", // Elasticsearch虛擬機的IP和端口
-//   auth: {
-//     username: "elastic", // Elasticsearch用戶名
-//     password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
-//   },
-// });
+// 黑名單讀進來
+const fs = require('fs');
+const path = require('path');
+
+const immortalDomainsPath = path.join(__dirname, 'ip_immortal_domains.txt');
+let immortalIPs;
+
+try {
+  const data = fs.readFileSync(immortalDomainsPath, 'utf8');
+  immortalIPs = data.split('\n');
+  // console.log(immortalIPs);
+} catch (err) {
+  console.error('無法讀取文件:', err);
+  immortalIPs = [];
+}
+
+
+// const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
+const client = new Client({
+  node: "http://192.168.0.101:9200", // Elasticsearch虛擬機的IP和端口
+  auth: {
+    username: "elastic", // Elasticsearch用戶名
+    password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
+  },
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -440,6 +457,75 @@ async function getCountryCityFromIp(ip) {
 app.get("/search", (req, res) => {
   res.render("search", { logs: [], error: null });
 });
+
+app.get("/strangelog", async (req, res) => {
+  try {
+    const { startDate, endDate, host, eventId, logLevel } = req.query;
+
+    if (!startDate || !endDate || !host) {
+      return res.render("strangelog", {
+        error: "StartDate, endDate, host, are all required.",
+      });
+    }
+
+    const queryBody = {
+      query: {
+        bool: {
+          must: [
+            {
+              range: {
+                "@timestamp": {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            },
+            {
+              term: {
+                "host.hostname": host,
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    if (eventId) {
+      // 如果存在 eventId，就加入查詢條件中
+      queryBody.query.bool.must.push({
+        term: {
+          "winlog.event_id": eventId,
+        },
+      });
+    }
+
+    if (logLevel) {
+      queryBody.query.bool.must.push({
+        term: {
+          "log.level": logLevel,
+        },
+      });
+    }
+    const result = await client.search({
+      index: "winlogbeat-*",
+      size: 1000,
+      body: queryBody,
+    });
+
+    const logs = result.hits.hits.filter(log =>
+      immortalIPs.includes(log._source.winlog.event_data.DestinationIp)
+    );
+    console.log(logs);
+
+    res.render("strangelog", { logs: logs, error: null });
+  } catch (error) {
+    console.error("Elasticsearch查詢錯誤:", error);
+    res.render("strangelog", { logs: [], error: "No matching logs found." });
+  }
+});
+
+
+
 
 const port = 3000;
 app.listen(port, () => {
