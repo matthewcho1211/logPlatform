@@ -85,26 +85,49 @@
         </ul>
       </div>
     </nav>
-    <form action="/login" method="post" class="mx-auto">
-      <label for="username" class="form-label">Username:</label>
-      <input
-        type="text"
-        id="username"
-        name="username"
-        class="form-control"
-        required
-      />
+    <h1 class="mt-4 text-center">日誌收容平台</h1>
+    <div class="form-signin w-100 m-auto">
+      <form
+        class="shadow p-3 mb-5 bg-white rounded"
+        action="/login"
+        method="post"
+      >
+        <h1 class="h3 mb-3 fw-normal">請登入</h1>
+        <div class="form-floating">
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-control"
+            placeholder="username"
+            required
+          />
+          <label for="username" class="form-label">使用者名稱</label>
+        </div>
 
-      <label for="password" class="form-label">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-control"
-        required
-      />
+        <div class="form-floating">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            placeholder=""
+            required
+          />
+          <label for="password" class="form-label">密碼</label>
+        </div>
 
-      <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+        <button type="submit" class="btn btn-primary btn-block">登入</button>
+      </form>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorMessage = urlParams.get("error");
+
+      if (errorMessage) {
+        alert(errorMessage);
+      }
+    </script>
   </body>
 </html>

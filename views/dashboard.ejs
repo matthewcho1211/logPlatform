@@ -62,69 +62,79 @@
       <div class="container">
         <h1>Dashboard</h1>
         <div class="row">
-          <form action="/" method="get">
-            <label for="startDate">開始日期:</label>
-            <input type="date" name="startDate" id="startDate" required />
-            <label for="endDate">結束日期:</label>
-            <input type="date" name="endDate" id="endDate" required />
-            <label for="timeRange">選擇時間範圍：</label>
-            <select name="timeRange" id="timeRange">
-              <option value="month">每月</option>
-              <option value="week">每周</option>
-              <option value="day">每日</option>
-              <option value="hour">每小時</option>
-            </select>
-            <button type="submit">搜索</button>
-          </form>
+          <div class="col-md-8">
+            <div class="shadow p-4 mb-4 bg-body-tertiary rounded-3">
+              <form action="/" method="get">
+                <label for="startDate">開始日期:</label>
+                <input type="date" name="startDate" id="startDate" required />
+                <label for="endDate">結束日期:</label>
+                <input type="date" name="endDate" id="endDate" required />
+                <label for="timeRange">選擇時間範圍：</label>
+                <select name="timeRange" id="timeRange">
+                  <option value="month">每月</option>
+                  <option value="week">每周</option>
+                  <option value="day">每日</option>
+                  <option value="hour">每小時</option>
+                </select>
+                <button type="submit">搜索</button>
+              </form>
+
+              <div><canvas id="logChart"></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-4">這邊放異常log提示</div>
         </div>
+
         <div class="row justify-content-md-center">
-          <div class="col-md-8"><canvas id="logChart"></canvas></div>
-        </div>
-        <div class="row justify-content-md-center">
+          <div class="col-md-3">
+            <div class="shadow p-4 mb-4 bg-body-tertiary rounded-3">
+              <h2>IP Address Information</h2>
+              <ul class="list-group">
+                <% topIps.forEach(function(ipInfo) { %>
+                <li class="list-group-item">
+                  IP: <%= ipInfo.ip %>, Count: <%= ipInfo.count %>
+                </li>
+                <% }); %>
+              </ul>
+            </div>
+          </div>
           <div class="col-md-9">
-            <h1>地圖位置</h1>
-            <div id="mapid" style="height: 500px"></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <h1>Top Event IDs</h1>
-            <ul class="list-group">
-              <% topEventIds.forEach(function(event) { %>
-              <li class="list-group-item">
-                Event ID: <%= event.eventId %>, Count: <%= event.count %>
-              </li>
-              <% }); %>
-            </ul>
-          </div>
-          <div class="col-md-6">
-            <h2>Event Id Chart</h2>
-            <div class="d-flex justify-content-center">
-              <canvas id="event_idChart"></canvas>
+            <div class="shadow p-3 mb-4 bg-body-tertiary rounded-3">
+              <h1>地圖位置</h1>
+              <div id="mapid" style="height: 500px"></div>
             </div>
           </div>
         </div>
-        <!-- 看ip來源國家 -->
         <div class="row">
           <div class="col-md-6">
-            <h1>IP Address Information</h1>
-            <ul class="list-group">
-              <% topIps.forEach(function(ipInfo) { %>
-              <li class="list-group-item">
-                IP: <%= ipInfo.ip %>, Count: <%= ipInfo.count %>
-              </li>
-              <% }); %>
-            </ul>
+            <div class="shadow p-3 mb-4 bg-body-tertiary rounded-3">
+              <h1>Top Event IDs</h1>
+              <ul class="list-group">
+                <% topEventIds.forEach(function(event) { %>
+                <li class="list-group-item">
+                  Event ID: <%= event.eventId %>, Count: <%= event.count %>
+                </li>
+                <% }); %>
+              </ul>
+            </div>
+            <div class="shadow p-3 mb-4 bg-body-tertiary rounded-3">
+              <h2>level</h2>
+              <ul class="list-group">
+                <% toplevels.forEach(function(levelInfo) { %>
+                <li class="list-group-item">
+                  level: <%= levelInfo.level %>, Count: <%= levelInfo.count %>
+                </li>
+                <% }); %>
+              </ul>
+            </div>
           </div>
           <div class="col-md-6">
-            <h1>level</h1>
-            <ul class="list-group">
-              <% toplevels.forEach(function(levelInfo) { %>
-              <li class="list-group-item">
-                level: <%= levelInfo.level %>, Count: <%= levelInfo.count %>
-              </li>
-              <% }); %>
-            </ul>
+            <div class="shadow p-3 mb-4 bg-body-tertiary rounded-3">
+              <h2>Event Id Chart</h2>
+              <div class="d-flex justify-content-center">
+                <canvas id="event_idChart"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>

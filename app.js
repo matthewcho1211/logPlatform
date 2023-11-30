@@ -26,30 +26,29 @@ app.use(
 );
 
 // 黑名單讀進來
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const immortalDomainsPath = path.join(__dirname, 'ip_immortal_domains.txt');
+const immortalDomainsPath = path.join(__dirname, "ip_immortal_domains.txt");
 let immortalIPs;
 
 try {
-  const data = fs.readFileSync(immortalDomainsPath, 'utf8');
-  immortalIPs = data.split('\n');
-  // console.log(immortalIPs);
+  const data = fs.readFileSync(immortalDomainsPath, "utf8");
+  immortalIPs = data.split("\n").map((ip) => ip.replace(/\r$/, ""));
+  //console.log(immortalIPs);
 } catch (err) {
-  console.error('無法讀取文件:', err);
+  console.error("無法讀取文件:", err);
   immortalIPs = [];
 }
 
-
-// const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
-const client = new Client({
-  node: "http://192.168.0.101:9200", // Elasticsearch虛擬機的IP和端口
-  auth: {
-    username: "elastic", // Elasticsearch用戶名
-    password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
-  },
-});
+const client = new Client({ node: "http://localhost:9200" }); //連自己的測試
+// const client = new Client({
+//   node: "http://192.168.0.101:9200", // Elasticsearch虛擬機的IP和端口
+//   auth: {
+//     username: "elastic", // Elasticsearch用戶名
+//     password: "R193XUF00LXgVlvVJmhx", // Elasticsearch密碼
+//   },
+// });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -65,6 +64,7 @@ const authenticate = (req, res, next) => {
 app.get("/login", (req, res) => {
   res.render("login");
 });
+
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -75,7 +75,7 @@ app.post("/login", (req, res) => {
     req.session.isAuthenticated = true;
     res.redirect("/");
   } else {
-    res.send("用戶名或密碼錯誤。");
+    res.redirect("/login?error=用戶名或密碼錯誤。");
   }
 });
 
@@ -167,8 +167,8 @@ app.get("/logDetail/:logId", async (req, res) => {
     //console.log(log);
     res.render("logInfo", { log: log });
   } catch (error) {
-    console.error("Elasticsearch 查询错误:", error);
-    res.status(500).json({ error: "Elasticsearch 查询错误" });
+    console.error("Elasticsearch 查詢錯誤:", error);
+    res.status(500).json({ error: "Elasticsearch 查詢錯誤" });
   }
 });
 
@@ -371,7 +371,7 @@ app.get("/", async (req, res) => {
         try {
           // 獲取城市信息
           const ip_data = await serviceClient.city(ip);
-          //console.log(ip_data);
+          console.log(ip_data);
 
           // 提取國家和城市信息
           let latitude, longitude;
@@ -512,7 +512,7 @@ app.get("/strangelog", async (req, res) => {
       body: queryBody,
     });
 
-    const logs = result.hits.hits.filter(log =>
+    const logs = result.hits.hits.filter((log) =>
       immortalIPs.includes(log._source.winlog.event_data.DestinationIp)
     );
     console.log(logs);
@@ -523,9 +523,6 @@ app.get("/strangelog", async (req, res) => {
     res.render("strangelog", { logs: [], error: "No matching logs found." });
   }
 });
-
-
-
 
 const port = 3000;
 app.listen(port, () => {
