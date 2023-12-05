@@ -82,8 +82,25 @@
               <div><canvas id="logChart"></canvas></div>
             </div>
           </div>
-          <div class="col-md-4">這邊放異常log提示</div>
+        <div class="col-md-4">
+          <% if (logsnullornot) { %>
+            <a href="/strangelog"><img src="/images/shell.png" alt="True Image" class="img-fluid"></a>
+          <% } else { %>
+            <a href="/strangelog"><img src="/images/danger.png" alt="False Image" class="img-fluid"></a>
+          <% } %>
+          <div class="column">
+            <% if (logsnullornot) { %>
+              <h3>
+                電腦很安全
+              </h3>
+            <% } else { %>
+              <h3>
+                今日偵測到異常IP共<%= logslength %>筆
+              </h3>
+            <% } %>
+          </div>
         </div>
+      </div>
 
         <div class="row justify-content-md-center">
           <div class="col-md-3">
@@ -142,13 +159,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
             let ipdata = []
+            
 
             const eventidlabel = <%- JSON.stringify(eventid_label) %>;
             const eventidcount = <%- JSON.stringify(eventid_count) %>;
             const labelforbar = <%- JSON.stringify(barlabel) %>;
             const dataforbar = <%- JSON.stringify(bardata) %>;
+            const logsnullornot = <%- JSON.stringify(logsnullornot) %>;
+            const logslength = <%- JSON.stringify(logslength) %>;
             ipdata = <%- JSON.stringify(topIps) %>;
-
+            
+          
+            
 
             const event_idChart = document.getElementById('event_idChart').getContext('2d');
             const logChart = document.getElementById('logChart').getContext('2d');

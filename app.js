@@ -31,6 +31,8 @@ const path = require("path");
 
 const immortalDomainsPath = path.join(__dirname, "ip_immortal_domains.txt");
 let immortalIPs;
+let logs;
+
 
 try {
   const data = fs.readFileSync(immortalDomainsPath, "utf8");
@@ -433,6 +435,48 @@ app.get("/", async (req, res) => {
     res.locals.bardata = bardata;
   } catch (error) {}
 
+  try{
+    const result = await client.search({
+      index: "winlogbeat-*",
+      size: 1000,
+      body: {
+        query: {
+          bool: {
+            must: [
+              {
+                range:{
+                  "@timestamp":{
+                    gte:"now/d",
+                    lte:"now+d/d"
+                  }
+                }
+              },
+              {
+                terms:{
+                  "winlog.event_data.DestinationIp": immortalIPs,
+                }
+              }
+            ],
+          },
+        },
+      }
+    });
+    let logs;
+    let logsnullornot
+    logs = result.hits.hits
+    if(logs.length === 0){
+      logsnullornot = true
+    }else{
+      logsnullornot = false
+    }
+    const logslength = logs.length
+    console.log(logsnullornot)
+    res.locals.logsnullornot = logsnullornot;
+    res.locals.logslength = logslength
+  }catch(error){
+
+  }
+
   res.render("dashboard");
 });
 
@@ -485,6 +529,11 @@ app.get("/strangelog", async (req, res) => {
                 "host.hostname": host,
               },
             },
+            {
+              terms: {
+                "winlog.event_data.DestinationIp": immortalIPs,
+              },
+            },
           ],
         },
       },
@@ -512,9 +561,7 @@ app.get("/strangelog", async (req, res) => {
       body: queryBody,
     });
 
-    const logs = result.hits.hits.filter((log) =>
-      immortalIPs.includes(log._source.winlog.event_data.DestinationIp)
-    );
+    logs = result.hits.hits
     console.log(logs);
 
     res.render("strangelog", { logs: logs, error: null });
@@ -522,6 +569,8 @@ app.get("/strangelog", async (req, res) => {
     console.error("Elasticsearch查詢錯誤:", error);
     res.render("strangelog", { logs: [], error: "No matching logs found." });
   }
+  
+
 });
 
 const port = 3000;
