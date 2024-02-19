@@ -1,4 +1,4 @@
-## 日誌收容平台：
+# 日誌收容平台：
 * 目的: Windows原生事件日誌檢視器功能有限，不方便瀏覽跟進行日誌的深入分析，所以我們就開發了這個平台，來解決這個問題。此平台可以協助管理員更有效率的瀏覽以及分析日誌內容，以及排查問題。
 
 * 主要功能：
@@ -13,7 +13,7 @@
   * 網頁設計：HTML、CSS、JavaScript
   * 前端框架：Bootstrap
   * 後端程式語言：Node.js
-  * 後端框架:Express.js
-  * 渲染模板：EJS
-  * 資料庫:Elasticsearch
-* Demo影片：link
+  * 後端框架 : Express.js
+  * 渲染模板 : EJS
+  * 資料庫 : Elasticsearch
+* Demo影片：<a href="https://www.youtube.com/watch?v=wJC7EeIhK9o">https://www.youtube.com/watch?v=wJC7EeIhK9o</a>
