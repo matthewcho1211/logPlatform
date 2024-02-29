@@ -33,7 +33,6 @@ const immortalDomainsPath = path.join(__dirname, "ip_immortal_domains.txt");
 let immortalIPs;
 let logs;
 
-
 try {
   const data = fs.readFileSync(immortalDomainsPath, "utf8");
   immortalIPs = data.split("\n").map((ip) => ip.replace(/\r$/, ""));
@@ -237,7 +236,7 @@ app.get("/", async (req, res) => {
   //獲取前五多的event_id
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index: "winlogbeat-*",
       size: 0,
       body: {
         aggs: {
@@ -267,7 +266,7 @@ app.get("/", async (req, res) => {
 
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index: "winlogbeat-*",
       size: 0,
       body: {
         aggs: {
@@ -301,7 +300,7 @@ app.get("/", async (req, res) => {
   // 查詢log.level
   try {
     const result = await client.search({
-      index: "winlogbeat-2023.11",
+      index: "winlogbeat-*",
       size: 0,
       body: {
         aggs: {
@@ -327,18 +326,6 @@ app.get("/", async (req, res) => {
   } catch (error) {
     console.error("Elasticsearch 查询错误:", error);
     res.status(500).json({ error: "Elasticsearch 查询错误" });
-  }
-
-  function getCountryCoordinates(countryCode) {
-    return fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-      .then((response) => response.json())
-      .then((data) => {
-        return {
-          lat: data[0].latlng[0],
-          lng: data[0].latlng[1],
-        };
-      })
-      .catch((error) => console.error("Error:", error));
   }
 
   // ip來源國家
@@ -435,7 +422,7 @@ app.get("/", async (req, res) => {
     res.locals.bardata = bardata;
   } catch (error) {}
 
-  try{
+  try {
     const result = await client.search({
       index: "winlogbeat-*",
       size: 1000,
@@ -444,59 +431,57 @@ app.get("/", async (req, res) => {
           bool: {
             must: [
               {
-                range:{
-                  "@timestamp":{
-                    gte:"now/d",
-                    lte:"now+d/d"
-                  }
-                }
+                range: {
+                  "@timestamp": {
+                    gte: "now-7d/d",
+                    lte: "now/d",
+                  },
+                },
               },
               {
-                terms:{
+                terms: {
                   "winlog.event_data.DestinationIp": immortalIPs,
-                }
-              }
+                },
+              },
             ],
           },
         },
-      }
+      },
     });
     let logs;
-    let logsnullornot
-    logs = result.hits.hits
-    if(logs.length === 0){
-      logsnullornot = true
-    }else{
-      logsnullornot = false
+    let logsnullornot;
+    logs = result.hits.hits;
+    if (logs.length === 0) {
+      logsnullornot = true;
+    } else {
+      logsnullornot = false;
     }
-    const logslength = logs.length
-    console.log(logsnullornot)
+    const logslength = logs.length;
+    console.log(logsnullornot);
     res.locals.logsnullornot = logsnullornot;
-    res.locals.logslength = logslength
-  }catch(error){
-
-  }
+    res.locals.logslength = logslength;
+  } catch (error) {}
 
   res.render("dashboard");
 });
 
-async function getCountryCityFromIp(ip) {
-  return new Promise((resolve, reject) => {
-    // 使用 IP 地址轉換 API，這裡使用了一個示例的 API（ipinfo.io）
-    const apiUrl = `http://ipinfo.io/${ip}/json`;
+// async function getCountryCityFromIp(ip) {
+//   return new Promise((resolve, reject) => {
+//     // 使用 IP 地址轉換 API，這裡使用了一個示例的 API（ipinfo.io）
+//     const apiUrl = `http://ipinfo.io/${ip}/json`;
 
-    request(apiUrl, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
-        const data = JSON.parse(body);
-        const country = data.country;
-        const city = data.city;
-        resolve({ country, city });
-      } else {
-        reject(error || "Failed to retrieve country and city data");
-      }
-    });
-  });
-}
+//     request(apiUrl, (error, response, body) => {
+//       if (!error && response.statusCode === 200) {
+//         const data = JSON.parse(body);
+//         const country = data.country;
+//         const city = data.city;
+//         resolve({ country, city });
+//       } else {
+//         reject(error || "Failed to retrieve country and city data");
+//       }
+//     });
+//   });
+// }
 
 app.get("/search", (req, res) => {
   res.render("search", { logs: [], error: null });
@@ -561,7 +546,7 @@ app.get("/strangelog", async (req, res) => {
       body: queryBody,
     });
 
-    logs = result.hits.hits
+    logs = result.hits.hits;
     console.log(logs);
 
     res.render("strangelog", { logs: logs, error: null });
@@ -569,8 +554,6 @@ app.get("/strangelog", async (req, res) => {
     console.error("Elasticsearch查詢錯誤:", error);
     res.render("strangelog", { logs: [], error: "No matching logs found." });
   }
-  
-
 });
 
 const port = 3000;
